@@ -1,13 +1,11 @@
 import React from 'react';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { MenuPlan } from '../services/menuApi';
 
 interface GeneratedMenuScreenProps {
   onClose: () => void;
   onBack: () => void;
   onViewMenus: () => void;
-  onShowShoppingList: () => void;
-  onShowWorkoutPlan: () => void;
   objective?: string;
   menuData?: MenuPlan | null;
 }
@@ -16,16 +14,49 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
   onClose, 
   onBack, 
   onViewMenus,
-  onShowShoppingList,
-  onShowWorkoutPlan,
   objective,
   menuData: apiMenuData
 }) => {
-  // Converter meals de objeto para array se necessário
+  // Função para obter a ordem de uma refeição
+  const getMealOrder = (meal: any): number => {
+    // Pega type ou name e converte para lowercase, remove acentos
+    const mealText = (meal.type || meal.name || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+    
+    // Verificar por palavras-chave (mais robusto)
+    if (mealText.includes('breakfast') || mealText.includes('cafe') || mealText.includes('manha')) {
+      return 1; // Café da manhã
+    }
+    if (mealText.includes('morning') || (mealText.includes('lanche') && mealText.includes('manha'))) {
+      return 2; // Lanche da manhã
+    }
+    if (mealText.includes('lunch') || mealText.includes('almoco')) {
+      return 3; // Almoço
+    }
+    if (mealText.includes('afternoon') || (mealText.includes('lanche') && mealText.includes('tarde'))) {
+      return 4; // Lanche da tarde
+    }
+    if (mealText.includes('dinner') || mealText.includes('jantar')) {
+      return 5; // Jantar
+    }
+    if (mealText.includes('supper') || mealText.includes('ceia')) {
+      return 6; // Ceia
+    }
+    
+    // Se não encontrou nada, coloca no final
+    return 999;
+  };
+
+  // Converter meals de objeto para array se necessário e ordenar
   const mealsArray = apiMenuData?.meals 
-    ? Array.isArray(apiMenuData.meals)
-      ? apiMenuData.meals
-      : Object.values(apiMenuData.meals).filter(meal => meal !== null && meal !== undefined)
+    ? (() => {
+        let meals = Array.isArray(apiMenuData.meals)
+          ? apiMenuData.meals
+          : Object.values(apiMenuData.meals).filter(meal => meal !== null && meal !== undefined);
+        
+        // Ordenar meals pela ordem correta
+        return meals.sort((a, b) => getMealOrder(a) - getMealOrder(b));
+      })()
     : [];
   
   // Verificar se temos dados reais da API
@@ -262,7 +293,7 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
       {/* Fixed Header */}
       <div className="bg-white border-b border-gray-200 p-6">
         {/* Title and Objective */}
-        <div className="mb-6">
+        <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Menu Alimentar</h2>
           <p className="text-gray-600">Objetivo: {objective || defaultMenuData.objective}</p>
           {apiMenuData?.nutritional_guidelines_detailed?.patient_name && (
@@ -270,17 +301,6 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
               Paciente: {apiMenuData.nutritional_guidelines_detailed.patient_name}
             </p>
           )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-2">
-          <button 
-            onClick={onShowShoppingList}
-            className="w-full bg-primary text-primary-foreground py-3 px-4 rounded-lg font-semibold flex items-center justify-center hover:bg-primary/90 transition-colors"
-          >
-            <ShoppingCart size={20} className="mr-2" />
-            Lista de compras
-          </button>
         </div>
       </div>
 
@@ -363,16 +383,12 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
           
           {/* Fechar bloco de dados de exemplo */}
 
-          {/* Nutritionist CTA - sempre exibir */}
+          {/* Nutritionist Info - sempre exibir */}
           {hasApiData && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-center">
-            <h3 className="font-bold text-gray-800 mb-2">Acompanhe com um Nutricionista da Starbem</h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Tenha acompanhamento profissional personalizado para seus objetivos
+          <div className="bg-green-50 border border-green-200 rounded-lg p-5 mb-6">
+            <p className="text-gray-700 text-sm leading-relaxed text-center">
+              A partir do plano <strong>TP3</strong> é possível fazer um acompanhamento com um profissional de nutrição da <strong>Starbem</strong> para te ajudar a alcançar seus objetivos de forma personalizada e eficaz.
             </p>
-            <button className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold">
-              Agendar Consulta
-            </button>
           </div>
           )}
         </div>

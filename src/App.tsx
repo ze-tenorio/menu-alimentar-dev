@@ -5,12 +5,20 @@ import MenuAlimentarForm from "./components/MenuAlimentarForm";
 import MenuLoadingScreen from "./components/MenuLoadingScreen";
 import GeneratedMenuScreen from "./components/GeneratedMenuScreen";
 import MenusListScreen from "./components/MenusListScreen";
-import ShoppingListScreen from "./components/ShoppingListScreen";
 import CpfEntryScreen from "./components/CpfEntryScreen";
 import { generateMenu, MenuPlan } from "./services/menuApi";
 import { getMenuHistory, getMenuDetail, MenuSummary } from "./services/menuHistoryApi";
 
 const App = () => {
+  // Carregar CPF salvo do sessionStorage ao iniciar
+  const getSavedCpf = () => {
+    try {
+      return sessionStorage.getItem('userCpf') || '';
+    } catch (error) {
+      return '';
+    }
+  };
+
   const [showTransition, setShowTransition] = useState(true);
   const [showMenuAlimentar, setShowMenuAlimentar] = useState(false);
   const [showCpfEntry, setShowCpfEntry] = useState(false);
@@ -19,9 +27,8 @@ const App = () => {
   const [loadingType, setLoadingType] = useState<'creating' | 'loading-history'>('creating');
   const [showGeneratedMenu, setShowGeneratedMenu] = useState(false);
   const [showMenusList, setShowMenusList] = useState(false);
-  const [showShoppingList, setShowShoppingList] = useState(false);
   const [hasCreatedMenu, setHasCreatedMenu] = useState(false);
-  const [userCpf, setUserCpf] = useState<string>('');
+  const [userCpf, setUserCpf] = useState<string>(getSavedCpf());
   const [historicalMenus, setHistoricalMenus] = useState<MenuSummary[]>([]);
   const [createdMenus, setCreatedMenus] = useState<Array<{
     id: string;
@@ -49,9 +56,34 @@ const App = () => {
     setShowMenuForm(true);
   };
 
-  const handleViewMyMenus = () => {
+  const handleViewMyMenus = async () => {
     setShowMenuAlimentar(false);
-    setShowCpfEntry(true);
+    
+    // Se já tem CPF salvo, buscar menus diretamente
+    if (userCpf) {
+      setLoadingType('loading-history');
+      setShowMenuLoading(true);
+      
+      try {
+        const result = await getMenuHistory(userCpf);
+        
+        if (result.success) {
+          setHistoricalMenus(result.menus);
+          setShowMenuLoading(false);
+          setShowMenusList(true);
+        } else {
+          // Se falhar, pedir CPF novamente
+          setShowMenuLoading(false);
+          setShowCpfEntry(true);
+        }
+      } catch (error) {
+        setShowMenuLoading(false);
+        setShowCpfEntry(true);
+      }
+    } else {
+      // Se não tem CPF salvo, pedir
+      setShowCpfEntry(true);
+    }
   };
 
   const handleCpfEntryClose = () => {
@@ -60,6 +92,13 @@ const App = () => {
   };
 
   const handleCpfSubmit = async (cpf: string) => {
+    // Salvar CPF no sessionStorage
+    try {
+      sessionStorage.setItem('userCpf', cpf);
+    } catch (error) {
+      console.error('Erro ao salvar CPF no sessionStorage:', error);
+    }
+    
     setUserCpf(cpf);
     setShowCpfEntry(false);
     setLoadingType('loading-history');
@@ -175,21 +214,42 @@ const App = () => {
     }
   };
 
-  const handleViewMenus = () => {
+  const handleViewMenus = async () => {
     setShowMenuAlimentar(false);
-    setShowCpfEntry(true);
+    
+    // Se já tem CPF salvo, buscar menus diretamente
+    if (userCpf) {
+      setLoadingType('loading-history');
+      setShowMenuLoading(true);
+      
+      try {
+        const result = await getMenuHistory(userCpf);
+        
+        if (result.success) {
+          setHistoricalMenus(result.menus);
+          setShowMenuLoading(false);
+          setShowMenusList(true);
+        } else {
+          setShowMenuLoading(false);
+          setShowCpfEntry(true);
+        }
+      } catch (error) {
+        setShowMenuLoading(false);
+        setShowCpfEntry(true);
+      }
+    } else {
+      setShowCpfEntry(true);
+    }
   };
 
   const handleMenusListClose = () => {
     setShowMenusList(false);
-    setUserCpf('');
     setHistoricalMenus([]);
   };
 
   const handleMenusListBack = () => {
     setShowMenusList(false);
     setShowMenuAlimentar(true);
-    setUserCpf('');
     setHistoricalMenus([]);
   };
 
@@ -227,6 +287,18 @@ const App = () => {
       const result = await getMenuDetail(userCpf, menuId);
       
       if (result.success && result.plan) {
+        // Extrair objetivo do plano retornado pela API
+        const planObjective = result.plan.nutritional_guidelines_detailed?.objective || 
+                              result.plan.objective || 
+                              'manutencao';
+        
+        // Setar formData com o objetivo correto
+        setFormData({ 
+          nutritional_plan_goals: { 
+            primary_objective: planObjective
+          } 
+        });
+        
         setCurrentMenu(result.plan);
         setShowMenuLoading(false);
         setShowGeneratedMenu(true);
@@ -242,42 +314,33 @@ const App = () => {
     }
   };
 
-  const handleShowShoppingList = () => {
-    setShowGeneratedMenu(false);
-    setShowShoppingList(true);
-  };
-
-  const handleShoppingListClose = () => {
-    setShowShoppingList(false);
-  };
-
-  const handleShoppingListBack = () => {
-    setShowShoppingList(false);
-    setShowGeneratedMenu(true);
-  };
-
-  const handleShowWorkoutPlan = () => {
-    // Placeholder - não implementado no projeto isolado
-    alert('Funcionalidade de plano de treino não disponível neste projeto isolado');
-  };
 
   const getObjectiveText = (objective: string) => {
     switch (objective) {
       case 'emagrecimento':
-        return 'Perda de Peso e Definição';
-      case 'ganho_de_peso':
-        return 'Ganho de Peso e Massa Muscular';
+        return '🔻 Emagrecimento';
+      case 'ganho_massa':
+        return '🔺 Ganho de Massa';
       case 'manutencao':
-        return 'Manutenção de Peso e Saúde Geral';
+        return '⚖️ Manutenção';
       // Manter compatibilidade com valores antigos
+      case 'ganho_de_peso':
+        return '🔺 Ganho de Massa';
       case 'emagrecer':
-        return 'Perda de Peso e Definição';
+        return '🔻 Emagrecimento';
       case 'ganhar-peso':
-        return 'Ganho de Peso e Massa Muscular';
+        return '🔺 Ganho de Massa';
       case 'manter-peso':
-        return 'Manutenção de Peso e Saúde Geral';
+        return '⚖️ Manutenção';
+      // Valores em inglês que a API pode retornar
+      case 'weight_loss':
+        return '🔻 Emagrecimento';
+      case 'muscle_gain':
+        return '🔺 Ganho de Massa';
+      case 'maintenance':
+        return '⚖️ Manutenção';
       default:
-        return 'Manutenção de Peso e Saúde Geral';
+        return '⚖️ Manutenção';
     }
   };
 
@@ -285,16 +348,25 @@ const App = () => {
     switch (objective) {
       case 'emagrecimento':
         return 'weight_loss';
-      case 'ganho_de_peso':
+      case 'ganho_massa':
         return 'muscle_gain';
       case 'manutencao':
         return 'maintenance';
       // Manter compatibilidade com valores antigos
+      case 'ganho_de_peso':
+        return 'muscle_gain';
       case 'emagrecer':
         return 'weight_loss';
       case 'ganhar-peso':
         return 'muscle_gain';
       case 'manter-peso':
+        return 'maintenance';
+      // Valores em inglês que a API pode retornar (já estão no formato correto)
+      case 'weight_loss':
+        return 'weight_loss';
+      case 'muscle_gain':
+        return 'muscle_gain';
+      case 'maintenance':
         return 'maintenance';
       default:
         return 'maintenance';
@@ -304,11 +376,13 @@ const App = () => {
   const getObjectiveId = (type: string) => {
     switch (type) {
       case 'weight_loss':
-        return 'emagrecer';
+        return 'emagrecimento';
       case 'muscle_gain':
-        return 'ganhar-peso';
+        return 'ganho_massa';
+      case 'maintenance':
+        return 'manutencao';
       default:
-        return 'manter-peso';
+        return 'manutencao';
     }
   };
 
@@ -350,8 +424,6 @@ const App = () => {
         onClose={handleGeneratedMenuClose} 
         onBack={handleGeneratedMenuBack} 
         onViewMenus={handleViewMenus} 
-        onShowShoppingList={handleShowShoppingList} 
-        onShowWorkoutPlan={handleShowWorkoutPlan} 
         objective={currentObjective}
         menuData={currentMenu}
       />
@@ -380,15 +452,6 @@ const App = () => {
         onCreateNew={handleCreateNewMenu} 
         onViewMenu={handleViewMenu} 
         menus={menusToShow} 
-      />
-    );
-  }
-
-  if (showShoppingList) {
-    return (
-      <ShoppingListScreen 
-        onClose={handleShoppingListClose} 
-        onBack={handleShoppingListBack} 
       />
     );
   }

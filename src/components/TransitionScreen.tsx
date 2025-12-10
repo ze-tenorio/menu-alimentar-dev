@@ -38,7 +38,7 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({
       <div className="mb-8">
         <div className="flex items-center justify-center">
           <img 
-            src="/logo TP.png" 
+            src="/logo-totalpass-new.png" 
             alt="TotalPass Logo"
             className="w-48 h-48 object-contain"
           />

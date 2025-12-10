@@ -24,7 +24,7 @@ const API_KEY = import.meta.env.VITE_API_KEY;
 export interface HistoricalPlan {
   plan_id: string;
   created_at: string; // ISO format
-  objective: 'emagrecimento' | 'ganho_de_peso' | 'manutencao' | 'weight_loss' | 'muscle_gain' | 'maintenance';
+  objective: 'emagrecimento' | 'ganho_massa' | 'ganho_de_peso' | 'manutencao' | 'weight_loss' | 'muscle_gain' | 'maintenance';
   current_weight: number;
   total_calories: number;
   age: number;
@@ -99,7 +99,7 @@ const MOCK_API_RESPONSES: Record<string, MenuHistoryApiResponse> = {
           {
             plan_id: '550e8400-e29b-41d4-a716-446655440003',
             created_at: '2025-11-10T16:45:00.000000',
-            objective: 'ganho_de_peso',
+            objective: 'ganho_massa',
             current_weight: 72.0,
             total_calories: 2800.0,
             age: 34
@@ -114,7 +114,7 @@ const MOCK_API_RESPONSES: Record<string, MenuHistoryApiResponse> = {
           {
             plan_id: '550e8400-e29b-41d4-a716-446655440004',
             created_at: '2025-11-22T11:00:00.000000',
-            objective: 'ganho_de_peso',
+            objective: 'ganho_massa',
             current_weight: 65.0,
             total_calories: 3200.0,
             age: 28
@@ -139,33 +139,39 @@ function convertPlanToSummary(plan: HistoricalPlan, patientId: string): MenuSumm
     // Português (esperado originalmente)
     'emagrecimento': {
       title: 'Menu Emagrecimento',
-      text: 'Perda de Peso e Definição',
+      text: '🔻 Emagrecimento',
       type: 'weight_loss'
     },
-    'ganho_de_peso': {
+    'ganho_massa': {
       title: 'Menu Ganho de Massa',
-      text: 'Ganho de Peso e Massa Muscular',
+      text: '🔺 Ganho de Massa',
       type: 'muscle_gain'
     },
     'manutencao': {
       title: 'Menu Manutenção',
-      text: 'Manutenção de Peso e Saúde Geral',
+      text: '⚖️ Manutenção',
       type: 'maintenance'
+    },
+    // Compatibilidade com valor antigo
+    'ganho_de_peso': {
+      title: 'Menu Ganho de Massa',
+      text: '🔺 Ganho de Massa',
+      type: 'muscle_gain'
     },
     // Inglês (retornado pela API real)
     'weight_loss': {
       title: 'Menu Emagrecimento',
-      text: 'Perda de Peso e Definição',
+      text: '🔻 Emagrecimento',
       type: 'weight_loss'
     },
     'muscle_gain': {
       title: 'Menu Ganho de Massa',
-      text: 'Ganho de Peso e Massa Muscular',
+      text: '🔺 Ganho de Massa',
       type: 'muscle_gain'
     },
     'maintenance': {
       title: 'Menu Manutenção',
-      text: 'Manutenção de Peso e Saúde Geral',
+      text: '⚖️ Manutenção',
       type: 'maintenance'
     }
   };

@@ -7,7 +7,22 @@ interface CpfEntryScreenProps {
 }
 
 const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) => {
-  const [cpf, setCpf] = useState('');
+  // Carregar CPF salvo do sessionStorage
+  const getSavedCpf = () => {
+    try {
+      const savedCpf = sessionStorage.getItem('userCpf');
+      if (savedCpf) {
+        // Formatar CPF salvo
+        const formatted = formatCPF(savedCpf);
+        return formatted;
+      }
+    } catch (error) {
+      console.error('Erro ao carregar CPF do sessionStorage:', error);
+    }
+    return '';
+  };
+
+  const [cpf, setCpf] = useState(getSavedCpf());
   const [error, setError] = useState('');
 
   const formatCPF = (value: string) => {
@@ -54,28 +69,32 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-800 flex items-center justify-between px-4 py-3">
-        <button onClick={onClose} className="text-white hover:text-gray-300">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-white text-lg font-semibold">Meus Menus</h1>
-        <div className="w-6"></div> {/* Spacer */}
-      </div>
-
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        {/* Back Button */}
+        <div className="absolute top-4 left-4">
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-800">
+            <ArrowLeft size={24} />
+          </button>
+        </div>
+
         {/* Logo */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center mb-4">
+        <div className="mb-8 mt-4">
+          <div className="flex flex-col items-center justify-center">
             <img 
-              src="/logo TP.png" 
+              src="/logo-totalpass-new.png" 
               alt="TotalPass Logo"
-              className="w-32 h-32 object-contain"
+              className="w-48 h-auto object-contain mb-3"
             />
-          </div>
-          <div className="text-center">
-            <span className="text-primary text-xl font-semibold">Benefícios</span>
+            {/* Powered by Starbem */}
+            <div className="flex items-center justify-center opacity-50">
+              <span className="text-gray-500 text-xs mr-2">powered by</span>
+              <img 
+                src="/logo-starbem.png" 
+                alt="Starbem"
+                className="h-4 object-contain"
+              />
+            </div>
           </div>
         </div>
 
@@ -108,6 +127,9 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
           />
           {error && (
             <p className="text-red-500 text-sm mt-2">{error}</p>
+          )}
+          {cpf && !error && (
+            <p className="text-primary text-sm mt-2">✓ CPF salvo anteriormente</p>
           )}
         </div>
 

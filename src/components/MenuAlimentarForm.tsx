@@ -485,9 +485,9 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
       
       <div className="space-y-3">
         {[
-          { id: 'emagrecimento', title: 'Emagrecer', description: 'Perder peso de forma saudável', icon: '🎯' },
-          { id: 'ganho_de_peso', title: 'Ganhar peso', description: 'Aumentar a massa muscular', icon: '💪' },
-          { id: 'manutencao', title: 'Manter peso', description: 'Manter peso com saúde', icon: '⚖️' }
+          { id: 'emagrecimento', title: '🔻 Emagrecimento', description: 'Perder peso de forma saudável', icon: '🔻' },
+          { id: 'manutencao', title: '⚖️ Manutenção', description: 'Manter peso com saúde', icon: '⚖️' },
+          { id: 'ganho_massa', title: '🔺 Ganho de Massa', description: 'Aumentar a massa muscular', icon: '🔺' }
         ].map((option) => (
           <button
             key={option.id}

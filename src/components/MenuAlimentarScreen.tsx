@@ -18,27 +18,26 @@ const MenuAlimentarScreen: React.FC<MenuAlimentarScreenProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      {/* Top Bar */}
-      <div className="bg-gray-800 flex items-center justify-between px-4 py-3">
-        <div className="w-6"></div> {/* Spacer */}
-        <h1 className="text-white text-lg font-semibold">TotalPass</h1>
-        <div className="w-6"></div> {/* Spacer para manter centralização */}
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col items-center px-6 py-8 pb-12">
-        {/* TotalPass Benefícios Logo */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center mb-4">
+        {/* TotalPass Logo */}
+        <div className="mb-8 mt-8">
+          <div className="flex flex-col items-center justify-center">
             <img 
-              src="/logo TP.png" 
+              src="/logo-totalpass-new.png" 
               alt="TotalPass Logo"
-              className="w-48 h-48 object-contain"
+              className="w-64 h-auto object-contain mb-3"
             />
-          </div>
-          <div className="text-center">
-            <span className="text-primary text-xl font-semibold">Benefícios</span>
+            {/* Powered by Starbem */}
+            <div className="flex items-center justify-center opacity-50">
+              <span className="text-gray-500 text-xs mr-2">powered by</span>
+              <img 
+                src="/logo-starbem.png" 
+                alt="Starbem"
+                className="h-4 object-contain"
+              />
+            </div>
           </div>
         </div>
 
@@ -48,23 +47,6 @@ const MenuAlimentarScreen: React.FC<MenuAlimentarScreenProps> = ({
           <p className="text-gray-600 text-base leading-relaxed">
             Crie seu menu alimentar inteligente e comece sua jornada de bem-estar
           </p>
-        </div>
-
-        {/* Info Card */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 w-full max-w-md mb-6">
-          <div className="flex items-start">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-              <span className="text-white text-lg">🧠</span>
-            </div>
-            <div>
-              <h3 className="text-blue-800 font-semibold text-sm mb-2">
-                Menu Inteligente TotalPass
-              </h3>
-              <p className="text-blue-700 text-xs leading-relaxed">
-                Nosso sistema analisa seu <strong>perfil nutricional</strong> e seu <strong>padrão de treinos</strong> extraído do seu histórico na TotalPass para criar um plano totalmente compatível com sua rotina, gostos e objetivos.
-              </p>
-            </div>
-          </div>
         </div>
 
 
@@ -79,7 +61,7 @@ const MenuAlimentarScreen: React.FC<MenuAlimentarScreenProps> = ({
             <div className="flex items-start">
               <div className="w-3 h-3 bg-primary rounded-full mt-2 mr-3 flex-shrink-0"></div>
               <p className="text-gray-700 text-sm">
-                Análise completa: perfil nutricional + histórico de treinos
+                Análise completa de perfil nutricional
               </p>
             </div>
             <div className="flex items-start">
