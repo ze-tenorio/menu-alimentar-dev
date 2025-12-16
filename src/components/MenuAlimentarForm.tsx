@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Plus, Minus, Target, Heart, Activity, Zap, Utensils, FileText, Lightbulb } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ArrowLeft, Plus, Minus, Target, Heart, Activity, Zap, Utensils, FileText, Lightbulb, AlertCircle } from 'lucide-react';
 
 interface MenuAlimentarFormProps {
   onClose: () => void;
@@ -54,8 +54,91 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     preferences: ''
   });
 
+  const [showValidationError, setShowValidationError] = useState(false);
+
   const totalSteps = 12;
   const progress = (currentStep / totalSteps) * 100;
+
+  // Validação para cada step
+  const validateCurrentStep = useMemo(() => {
+    switch (currentStep) {
+      case 1: // CPF
+        const cpfNumbers = formData.cpf.replace(/\D/g, '');
+        return cpfNumbers.length === 11;
+      case 2: // Nome e Sexo
+        return formData.fullName.trim().length >= 3 && formData.gender !== '';
+      case 3: // Idade, Peso, Altura
+        const age = parseInt(formData.age);
+        const weight = parseFloat(formData.weight);
+        const height = parseInt(formData.height);
+        return (
+          !isNaN(age) && age >= 1 && age <= 120 &&
+          !isNaN(weight) && weight >= 20 && weight <= 300 &&
+          !isNaN(height) && height >= 100 && height <= 250
+        );
+      case 4: // Patologias - sempre válido (tem valor default)
+        return true;
+      case 5: // Objetivo
+        return formData.objective !== '';
+      case 6: // Frequência de atividade
+        return formData.activityFrequency !== '';
+      case 7: // Intensidade do exercício
+        return formData.exerciseIntensity !== '';
+      case 8: // Tipo de dieta
+        return formData.dietType !== '';
+      case 9: // Alergias - sempre válido (opcional)
+        return true;
+      case 10: // Intolerâncias - sempre válido (opcional)
+        return true;
+      case 11: // Aversões - sempre válido (opcional)
+        return true;
+      case 12: // Preferências - sempre válido (opcional)
+        return true;
+      default:
+        return true;
+    }
+  }, [currentStep, formData]);
+
+  // Mensagens de erro para cada step
+  const getValidationMessage = () => {
+    switch (currentStep) {
+      case 1:
+        return 'Por favor, informe um CPF válido (11 dígitos).';
+      case 2:
+        if (formData.fullName.trim().length < 3) {
+          return 'Por favor, informe seu nome completo (mínimo 3 caracteres).';
+        }
+        if (formData.gender === '') {
+          return 'Por favor, selecione seu sexo biológico.';
+        }
+        return '';
+      case 3:
+        const messages = [];
+        const age = parseInt(formData.age);
+        const weight = parseFloat(formData.weight);
+        const height = parseInt(formData.height);
+        if (isNaN(age) || age < 1 || age > 120) {
+          messages.push('idade válida (1-120 anos)');
+        }
+        if (isNaN(weight) || weight < 20 || weight > 300) {
+          messages.push('peso válido (20-300 kg)');
+        }
+        if (isNaN(height) || height < 100 || height > 250) {
+          messages.push('altura válida (100-250 cm)');
+        }
+        return messages.length > 0 ? `Por favor, informe: ${messages.join(', ')}.` : '';
+      case 5:
+        return 'Por favor, selecione seu objetivo.';
+      case 6:
+        return 'Por favor, selecione sua frequência de atividade física.';
+      case 7:
+        return 'Por favor, selecione a intensidade do exercício.';
+      case 8:
+        return 'Por favor, selecione o tipo de dieta que você segue.';
+      default:
+        return '';
+    }
+  };
 
   const transformFormDataToPayload = (data: typeof formData) => {
     // Converter altura de cm para metros
@@ -123,6 +206,14 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   };
 
   const handleNext = () => {
+    // Validar step atual antes de avançar
+    if (!validateCurrentStep) {
+      setShowValidationError(true);
+      return;
+    }
+    
+    setShowValidationError(false);
+    
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -133,6 +224,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   };
 
   const handleBack = () => {
+    setShowValidationError(false); // Limpar erro ao voltar
     // Se tem CPF inicial e está no step 2, volta para a tela anterior (não step 1)
     if (initialCpf && currentStep === 2) {
       onClose();
@@ -144,6 +236,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   };
 
   const handleInputChange = (field: string, value: any) => {
+    setShowValidationError(false); // Limpar erro quando usuário edita
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -199,227 +292,292 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     }));
   };
 
-  const renderStep1 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-6 h-6 text-primary" />
+  const renderStep1 = () => {
+    const cpfNumbers = formData.cpf.replace(/\D/g, '');
+    const isValid = cpfNumbers.length === 11;
+    const showError = showValidationError && !isValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Identificação</h2>
+          <p className="text-gray-600 text-base leading-relaxed">
+            Para começar, informe seu CPF
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Identificação</h2>
-        <p className="text-gray-600 text-base leading-relaxed">
-          Para começar, informe seu CPF
-        </p>
-      </div>
-      
-      <div>
-        <label className="block text-gray-700 font-medium mb-2">CPF</label>
-        <input
-          type="text"
-          placeholder="000.000.000-00"
-          value={formData.cpf}
-          onChange={(e) => {
-            // Formatar CPF enquanto digita
-            const value = e.target.value.replace(/\D/g, '');
-            let formatted = value;
-            if (value.length > 3) {
-              formatted = value.slice(0, 3) + '.' + value.slice(3);
-            }
-            if (value.length > 6) {
-              formatted = formatted.slice(0, 7) + '.' + value.slice(6);
-            }
-            if (value.length > 9) {
-              formatted = formatted.slice(0, 11) + '-' + value.slice(9, 11);
-            }
-            handleInputChange('cpf', formatted);
-          }}
-          maxLength={14}
-          className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-gray-800"
-        />
-      </div>
-    </div>
-  );
-
-  const renderStep2 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Heart className="w-6 h-6 text-primary" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados Pessoais</h2>
-        <p className="text-gray-600 text-base">Informe seu nome completo e sexo biológico</p>
-      </div>
-      
-      <div className="space-y-4">
+        
         <div>
-          <label className="block text-gray-700 font-medium mb-2">Nome Completo</label>
+          <label className="block text-gray-700 font-medium mb-2">
+            CPF <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
-            placeholder="Digite seu nome completo"
-            value={formData.fullName}
-            onChange={(e) => handleInputChange('fullName', e.target.value)}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-gray-800"
+            placeholder="000.000.000-00"
+            value={formData.cpf}
+            onChange={(e) => {
+              // Formatar CPF enquanto digita
+              const value = e.target.value.replace(/\D/g, '');
+              let formatted = value;
+              if (value.length > 3) {
+                formatted = value.slice(0, 3) + '.' + value.slice(3);
+              }
+              if (value.length > 6) {
+                formatted = formatted.slice(0, 7) + '.' + value.slice(6);
+              }
+              if (value.length > 9) {
+                formatted = formatted.slice(0, 11) + '-' + value.slice(9, 11);
+              }
+              handleInputChange('cpf', formatted);
+            }}
+            maxLength={14}
+            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+              showError 
+                ? 'border-red-400 focus:ring-red-200' 
+                : 'border-gray-200 focus:ring-primary/20'
+            }`}
           />
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">Sexo Biológico</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => handleInputChange('gender', 'M')}
-              className={`p-4 rounded-lg border-2 transition-colors ${
-                formData.gender === 'M'
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-gray-50 border-gray-200 text-gray-700'
-              }`}
-            >
-              <span className="font-medium">Masculino</span>
-            </button>
-            <button
-              onClick={() => handleInputChange('gender', 'F')}
-              className={`p-4 rounded-lg border-2 transition-colors ${
-                formData.gender === 'F'
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-gray-50 border-gray-200 text-gray-700'
-              }`}
-            >
-              <span className="font-medium">Feminino</span>
-            </button>
-          </div>
+          {showError && (
+            <p className="text-red-500 text-sm mt-1">CPF deve ter 11 dígitos</p>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const renderStep3 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Heart className="w-6 h-6 text-primary" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados de Saúde</h2>
-        <p className="text-gray-600 text-base">Qual é a sua idade, peso e altura?</p>
-      </div>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Idade (em anos)
-            <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números (ex: 25)</span>
-          </label>
-          <div className="flex items-center bg-white border border-gray-200 rounded-lg">
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="Ex: 25"
-              value={formData.age}
-              onChange={(e) => {
-                // Permite apenas números inteiros
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                handleInputChange('age', value);
-              }}
-              className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
-            />
-            <div className="flex flex-col">
-              <button 
-                type="button"
-                onClick={() => handleNumberIncrement('age')}
-                className="p-2 text-primary hover:bg-primary/10"
-              >
-                <Plus size={16} />
-              </button>
-              <button 
-                type="button"
-                onClick={() => handleNumberDecrement('age')}
-                className="p-2 text-primary hover:bg-primary/10"
-              >
-                <Minus size={16} />
-              </button>
-            </div>
+  const renderStep2 = () => {
+    const nameValid = formData.fullName.trim().length >= 3;
+    const genderValid = formData.gender !== '';
+    const showNameError = showValidationError && !nameValid;
+    const showGenderError = showValidationError && !genderValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-6 h-6 text-primary" />
           </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados Pessoais</h2>
+          <p className="text-gray-600 text-base">Informe seu nome completo e sexo biológico</p>
         </div>
         
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Peso atual (em kg)
-            <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números (ex: 70 ou 65.5)</span>
-          </label>
-          <div className="flex items-center bg-white border border-gray-200 rounded-lg">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Nome Completo <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
-              inputMode="decimal"
-              pattern="[0-9]*\.?[0-9]*"
-              placeholder="Ex: 70"
-              value={formData.weight}
-              onChange={(e) => {
-                // Permite apenas números e ponto decimal
-                const value = e.target.value.replace(/[^0-9.]/g, '');
-                // Garante apenas um ponto decimal
-                const parts = value.split('.');
-                const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : value;
-                handleInputChange('weight', sanitized);
-              }}
-              className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+              placeholder="Digite seu nome completo"
+              value={formData.fullName}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+                showNameError 
+                  ? 'border-red-400 focus:ring-red-200' 
+                  : 'border-gray-200 focus:ring-primary/20'
+              }`}
             />
-            <div className="flex flex-col">
-              <button 
-                type="button"
-                onClick={() => handleNumberIncrement('weight')}
-                className="p-2 text-primary hover:bg-primary/10"
-              >
-                <Plus size={16} />
-              </button>
-              <button 
-                type="button"
-                onClick={() => handleNumberDecrement('weight')}
-                className="p-2 text-primary hover:bg-primary/10"
-              >
-                <Minus size={16} />
-              </button>
-            </div>
+            {showNameError && (
+              <p className="text-red-500 text-sm mt-1">Nome deve ter pelo menos 3 caracteres</p>
+            )}
           </div>
-        </div>
-        
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Altura (em centímetros)
-            <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números em cm (ex: 170)</span>
-          </label>
-          <div className="flex items-center bg-white border border-gray-200 rounded-lg">
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="Ex: 170"
-              value={formData.height}
-              onChange={(e) => {
-                // Permite apenas números inteiros
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                handleInputChange('height', value);
-              }}
-              className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
-            />
-            <div className="flex flex-col">
-              <button 
-                type="button"
-                onClick={() => handleNumberIncrement('height')}
-                className="p-2 text-primary hover:bg-primary/10"
+          
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Sexo Biológico <span className="text-red-500">*</span>
+            </label>
+            <div className={`grid grid-cols-2 gap-3 ${showGenderError ? 'p-1 border border-red-400 rounded-lg' : ''}`}>
+              <button
+                onClick={() => handleInputChange('gender', 'M')}
+                className={`p-4 rounded-lg border-2 transition-colors ${
+                  formData.gender === 'M'
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-gray-50 border-gray-200 text-gray-700'
+                }`}
               >
-                <Plus size={16} />
+                <span className="font-medium">Masculino</span>
               </button>
-              <button 
-                type="button"
-                onClick={() => handleNumberDecrement('height')}
-                className="p-2 text-primary hover:bg-primary/10"
+              <button
+                onClick={() => handleInputChange('gender', 'F')}
+                className={`p-4 rounded-lg border-2 transition-colors ${
+                  formData.gender === 'F'
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-gray-50 border-gray-200 text-gray-700'
+                }`}
               >
-                <Minus size={16} />
+                <span className="font-medium">Feminino</span>
               </button>
             </div>
+            {showGenderError && (
+              <p className="text-red-500 text-sm mt-1">Por favor, selecione seu sexo biológico</p>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  const renderStep3 = () => {
+    const age = parseInt(formData.age);
+    const weight = parseFloat(formData.weight);
+    const height = parseInt(formData.height);
+    
+    const ageValid = !isNaN(age) && age >= 1 && age <= 120;
+    const weightValid = !isNaN(weight) && weight >= 20 && weight <= 300;
+    const heightValid = !isNaN(height) && height >= 100 && height <= 250;
+    
+    const showAgeError = showValidationError && !ageValid;
+    const showWeightError = showValidationError && !weightValid;
+    const showHeightError = showValidationError && !heightValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados de Saúde</h2>
+          <p className="text-gray-600 text-base">Qual é a sua idade, peso e altura?</p>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Idade (em anos) <span className="text-red-500">*</span>
+              <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números (ex: 25)</span>
+            </label>
+            <div className={`flex items-center bg-white border rounded-lg ${
+              showAgeError ? 'border-red-400' : 'border-gray-200'
+            }`}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Ex: 25"
+                value={formData.age}
+                onChange={(e) => {
+                  // Permite apenas números inteiros
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  handleInputChange('age', value);
+                }}
+                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+              />
+              <div className="flex flex-col">
+                <button 
+                  type="button"
+                  onClick={() => handleNumberIncrement('age')}
+                  className="p-2 text-primary hover:bg-primary/10"
+                >
+                  <Plus size={16} />
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleNumberDecrement('age')}
+                  className="p-2 text-primary hover:bg-primary/10"
+                >
+                  <Minus size={16} />
+                </button>
+              </div>
+            </div>
+            {showAgeError && (
+              <p className="text-red-500 text-sm mt-1">Idade deve ser entre 1 e 120 anos</p>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Peso atual (em kg) <span className="text-red-500">*</span>
+              <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números (ex: 70 ou 65.5)</span>
+            </label>
+            <div className={`flex items-center bg-white border rounded-lg ${
+              showWeightError ? 'border-red-400' : 'border-gray-200'
+            }`}>
+              <input
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9]*\.?[0-9]*"
+                placeholder="Ex: 70"
+                value={formData.weight}
+                onChange={(e) => {
+                  // Permite apenas números e ponto decimal
+                  const value = e.target.value.replace(/[^0-9.]/g, '');
+                  // Garante apenas um ponto decimal
+                  const parts = value.split('.');
+                  const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : value;
+                  handleInputChange('weight', sanitized);
+                }}
+                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+              />
+              <div className="flex flex-col">
+                <button 
+                  type="button"
+                  onClick={() => handleNumberIncrement('weight')}
+                  className="p-2 text-primary hover:bg-primary/10"
+                >
+                  <Plus size={16} />
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleNumberDecrement('weight')}
+                  className="p-2 text-primary hover:bg-primary/10"
+                >
+                  <Minus size={16} />
+                </button>
+              </div>
+            </div>
+            {showWeightError && (
+              <p className="text-red-500 text-sm mt-1">Peso deve ser entre 20 e 300 kg</p>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Altura (em centímetros) <span className="text-red-500">*</span>
+              <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números em cm (ex: 170)</span>
+            </label>
+            <div className={`flex items-center bg-white border rounded-lg ${
+              showHeightError ? 'border-red-400' : 'border-gray-200'
+            }`}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Ex: 170"
+                value={formData.height}
+                onChange={(e) => {
+                  // Permite apenas números inteiros
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  handleInputChange('height', value);
+                }}
+                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+              />
+              <div className="flex flex-col">
+                <button 
+                  type="button"
+                  onClick={() => handleNumberIncrement('height')}
+                  className="p-2 text-primary hover:bg-primary/10"
+                >
+                  <Plus size={16} />
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleNumberDecrement('height')}
+                  className="p-2 text-primary hover:bg-primary/10"
+                >
+                  <Minus size={16} />
+                </button>
+              </div>
+            </div>
+            {showHeightError && (
+              <p className="text-red-500 text-sm mt-1">Altura deve ser entre 100 e 250 cm</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderStep4 = () => (
     <div className="space-y-6">
@@ -473,172 +631,212 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     </div>
   );
 
-  const renderStep5 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Target className="w-6 h-6 text-primary" />
+  const renderStep5 = () => {
+    const isValid = formData.objective !== '';
+    const showError = showValidationError && !isValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Target className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Objetivo</h2>
+          <p className="text-gray-600 text-base">
+            Qual é o seu objetivo? <span className="text-red-500">*</span>
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Objetivo</h2>
-        <p className="text-gray-600 text-base">Qual é o seu objetivo?</p>
+        
+        <div className={`space-y-3 ${showError ? 'p-2 border border-red-400 rounded-lg' : ''}`}>
+          {[
+            { id: 'emagrecimento', title: '🔻 Emagrecimento', description: 'Perder peso de forma saudável', icon: '🔻' },
+            { id: 'manutencao', title: '⚖️ Manutenção', description: 'Manter peso com saúde', icon: '⚖️' },
+            { id: 'ganho_massa', title: '🔺 Ganho de Massa', description: 'Aumentar a massa muscular', icon: '🔺' }
+          ].map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleInputChange('objective', option.id)}
+              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+                formData.objective === option.id
+                  ? 'bg-primary/10 border-primary'
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center">
+                <span className="text-2xl mr-3">{option.icon}</span>
+                <div>
+                  <div className="font-medium text-gray-800">{option.title}</div>
+                  <div className="text-sm text-gray-600">{option.description}</div>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+        {showError && (
+          <p className="text-red-500 text-sm">Por favor, selecione um objetivo</p>
+        )}
       </div>
-      
-      <div className="space-y-3">
-        {[
-          { id: 'emagrecimento', title: '🔻 Emagrecimento', description: 'Perder peso de forma saudável', icon: '🔻' },
-          { id: 'manutencao', title: '⚖️ Manutenção', description: 'Manter peso com saúde', icon: '⚖️' },
-          { id: 'ganho_massa', title: '🔺 Ganho de Massa', description: 'Aumentar a massa muscular', icon: '🔺' }
-        ].map((option) => (
-          <button
-            key={option.id}
-            onClick={() => handleInputChange('objective', option.id)}
-            className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-              formData.objective === option.id
-                ? 'bg-primary/10 border-primary'
-                : 'bg-gray-50 border-gray-200'
-            }`}
-          >
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">{option.icon}</span>
+    );
+  };
+
+  const renderStep6 = () => {
+    const isValid = formData.activityFrequency !== '';
+    const showError = showValidationError && !isValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Activity className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Frequência de atividade física</h2>
+          <p className="text-gray-600 text-base">
+            Quantas vezes por semana você pratica atividade física? <span className="text-red-500">*</span>
+          </p>
+        </div>
+        
+        <div className={`space-y-3 ${showError ? 'p-2 border border-red-400 rounded-lg' : ''}`}>
+          {[
+            { id: 'sedentario', title: 'Sedentário', description: 'Não pratico atividade física' },
+            { id: 'leve', title: '1-2 vezes', description: 'Por semana' },
+            { id: 'moderado', title: '3-4 vezes', description: 'Por semana' },
+            { id: 'ativo', title: '5-6 vezes', description: 'Por semana' },
+            { id: 'muito_ativo', title: 'Diariamente', description: 'Todos os dias' }
+          ].map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleInputChange('activityFrequency', option.id)}
+              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+                formData.activityFrequency === option.id
+                  ? 'bg-primary/10 border-primary'
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
               <div>
                 <div className="font-medium text-gray-800">{option.title}</div>
                 <div className="text-sm text-gray-600">{option.description}</div>
               </div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderStep6 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Activity className="w-6 h-6 text-primary" />
+            </button>
+          ))}
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Frequência de atividade física</h2>
-        <p className="text-gray-600 text-base">Quantas vezes por semana você pratica atividade física?</p>
+        {showError && (
+          <p className="text-red-500 text-sm">Por favor, selecione sua frequência de atividade física</p>
+        )}
       </div>
-      
-      <div className="space-y-3">
-        {[
-          { id: 'sedentario', title: 'Sedentário', description: 'Não pratico atividade física' },
-          { id: 'leve', title: '1-2 vezes', description: 'Por semana' },
-          { id: 'moderado', title: '3-4 vezes', description: 'Por semana' },
-          { id: 'ativo', title: '5-6 vezes', description: 'Por semana' },
-          { id: 'muito_ativo', title: 'Diariamente', description: 'Todos os dias' }
-        ].map((option) => (
-          <button
-            key={option.id}
-            onClick={() => handleInputChange('activityFrequency', option.id)}
-            className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-              formData.activityFrequency === option.id
-                ? 'bg-primary/10 border-primary'
-                : 'bg-gray-50 border-gray-200'
-            }`}
-          >
-            <div>
-              <div className="font-medium text-gray-800">{option.title}</div>
-              <div className="text-sm text-gray-600">{option.description}</div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
-  const renderStep7 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Zap className="w-6 h-6 text-primary" />
+  const renderStep7 = () => {
+    const isValid = formData.exerciseIntensity !== '';
+    const showError = showValidationError && !isValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Zap className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Nível de Intensidade</h2>
+          <p className="text-gray-600 text-base">
+            Qual a intensidade do exercício que você executa? <span className="text-red-500">*</span>
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Nível de Intensidade</h2>
-        <p className="text-gray-600 text-base">Qual a intensidade do exercício que você executa?</p>
+        
+        <div className={`space-y-3 ${showError ? 'p-2 border border-red-400 rounded-lg' : ''}`}>
+          {[
+            {
+              id: 'leve',
+              title: 'Leve',
+              description: 'Caminhada lenta, alongamentos simples, tarefas domésticas leves.'
+            },
+            {
+              id: 'moderada',
+              title: 'Moderada',
+              description: 'Caminhada rápida, natação leve, ciclamento moderado.'
+            },
+            {
+              id: 'intensa',
+              title: 'Intensa',
+              description: 'Corrida, natação rápida, HIIT, musculação com alta carga.'
+            },
+            {
+              id: 'nao_se_aplica',
+              title: 'Não se aplica',
+              description: ''
+            }
+          ].map((option) => (
+            <button
+              key={option.id}
+              onClick={() => handleInputChange('exerciseIntensity', option.id)}
+              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+                formData.exerciseIntensity === option.id
+                  ? 'bg-primary/10 border-primary'
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div>
+                <div className="font-medium text-gray-800">{option.title}</div>
+                {option.description && (
+                  <div className="text-sm text-gray-600 mt-1">{option.description}</div>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+        {showError && (
+          <p className="text-red-500 text-sm">Por favor, selecione a intensidade do exercício</p>
+        )}
       </div>
-      
-      <div className="space-y-3">
-        {[
-          {
-            id: 'leve',
-            title: 'Leve',
-            description: 'Caminhada lenta, alongamentos simples, tarefas domésticas leves.'
-          },
-          {
-            id: 'moderada',
-            title: 'Moderada',
-            description: 'Caminhada rápida, natação leve, ciclamento moderado.'
-          },
-          {
-            id: 'intensa',
-            title: 'Intensa',
-            description: 'Corrida, natação rápida, HIIT, musculação com alta carga.'
-          },
-          {
-            id: 'nao_se_aplica',
-            title: 'Não se aplica',
-            description: ''
-          }
-        ].map((option) => (
-          <button
-            key={option.id}
-            onClick={() => handleInputChange('exerciseIntensity', option.id)}
-            className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-              formData.exerciseIntensity === option.id
-                ? 'bg-primary/10 border-primary'
-                : 'bg-gray-50 border-gray-200'
-            }`}
-          >
-            <div>
-              <div className="font-medium text-gray-800">{option.title}</div>
-              {option.description && (
-                <div className="text-sm text-gray-600 mt-1">{option.description}</div>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
-  const renderStep8 = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-6 h-6 text-primary" />
+  const renderStep8 = () => {
+    const isValid = formData.dietType !== '';
+    const showError = showValidationError && !isValid;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Tipo de Dieta</h2>
+          <p className="text-gray-600 text-base">
+            Qual tipo de dieta você segue? <span className="text-red-500">*</span>
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Tipo de Dieta</h2>
-        <p className="text-gray-600 text-base">Qual tipo de dieta você segue?</p>
+        
+        <div className={`space-y-3 ${showError ? 'p-2 border border-red-400 rounded-lg' : ''}`}>
+          {[
+            { id: 'onivora', title: 'Onívora', description: 'Come de tudo' },
+            { id: 'vegetariana', title: 'Vegetariana', description: 'Não come carne' },
+            { id: 'vegana', title: 'Vegana', description: 'Sem produtos de origem animal' },
+            { id: 'pescetariana', title: 'Pescetariana', description: 'Come peixe, mas não carne' },
+            { id: 'low_carb', title: 'Low Carb', description: 'Poucos carboidratos' },
+            { id: 'cetogenica', title: 'Cetogênica', description: 'Muito baixo carboidrato' }
+          ].map((diet) => (
+            <button
+              key={diet.id}
+              onClick={() => handleInputChange('dietType', diet.id)}
+              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+                formData.dietType === diet.id
+                  ? 'bg-primary/10 border-primary'
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div>
+                <div className="font-medium text-gray-800">{diet.title}</div>
+                <div className="text-sm text-gray-600">{diet.description}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        {showError && (
+          <p className="text-red-500 text-sm">Por favor, selecione o tipo de dieta que você segue</p>
+        )}
       </div>
-      
-      <div className="space-y-3">
-        {[
-          { id: 'onivora', title: 'Onívora', description: 'Come de tudo' },
-          { id: 'vegetariana', title: 'Vegetariana', description: 'Não come carne' },
-          { id: 'vegana', title: 'Vegana', description: 'Sem produtos de origem animal' },
-          { id: 'pescetariana', title: 'Pescetariana', description: 'Come peixe, mas não carne' },
-          { id: 'low_carb', title: 'Low Carb', description: 'Poucos carboidratos' },
-          { id: 'cetogenica', title: 'Cetogênica', description: 'Muito baixo carboidrato' }
-        ].map((diet) => (
-          <button
-            key={diet.id}
-            onClick={() => handleInputChange('dietType', diet.id)}
-            className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-              formData.dietType === diet.id
-                ? 'bg-primary/10 border-primary'
-                : 'bg-gray-50 border-gray-200'
-            }`}
-          >
-            <div>
-              <div className="font-medium text-gray-800">{diet.title}</div>
-              <div className="text-sm text-gray-600">{diet.description}</div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderStep9 = () => (
     <div className="space-y-6">
@@ -863,11 +1061,23 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
 
       {/* Footer */}
       <div className="p-6 border-t border-gray-200">
+        {/* Mensagem de erro de validação */}
+        {showValidationError && !validateCurrentStep && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <span className="text-red-700 text-sm">{getValidationMessage()}</span>
+          </div>
+        )}
+        
         <button
           onClick={handleNext}
-          className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-semibold text-lg hover:bg-primary/90 transition-colors"
+          className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
+            validateCurrentStep
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
         >
-          Continuar
+          {currentStep === totalSteps ? 'Gerar Menu' : 'Continuar'}
         </button>
       </div>
     </div>
