@@ -23,22 +23,88 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
 }) => {
   const [showCsatModal, setShowCsatModal] = useState(false);
   const [csatDismissed, setCsatDismissed] = useState(false);
+  const [firstInteractionTime, setFirstInteractionTime] = useState<number | null>(null);
+  const [hasScrolled80Percent, setHasScrolled80Percent] = useState(false);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
-  // Mostrar modal CSAT após alguns segundos de visualização do menu recém-gerado
-  useEffect(() => {
-    // Só mostrar para menus recém-gerados que ainda não foram avaliados
-    if (!isNewlyGenerated || csatDismissed) return;
-    
+  // Função para verificar se pode mostrar CSAT
+  const canShowCsat = () => {
+    if (!isNewlyGenerated || csatDismissed || showCsatModal) return false;
     const planId = apiMenuData?.plan_id;
-    if (planId && isPlanEvaluated(planId)) return;
+    if (planId && isPlanEvaluated(planId)) return false;
+    return true;
+  };
 
-    // Aguardar 8 segundos para o usuário visualizar o menu antes de pedir feedback
+  // Detectar primeira interação (scroll, click, touch)
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !isNewlyGenerated || firstInteractionTime) return;
+
+    const handleFirstInteraction = () => {
+      if (!firstInteractionTime) {
+        setFirstInteractionTime(Date.now());
+      }
+    };
+
+    // Detectar qualquer tipo de interação
+    container.addEventListener('scroll', handleFirstInteraction);
+    container.addEventListener('click', handleFirstInteraction);
+    container.addEventListener('touchstart', handleFirstInteraction);
+
+    return () => {
+      container.removeEventListener('scroll', handleFirstInteraction);
+      container.removeEventListener('click', handleFirstInteraction);
+      container.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, [isNewlyGenerated, firstInteractionTime]);
+
+  // Detectar scroll >= 80% da página
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !isNewlyGenerated || hasScrolled80Percent) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      
+      // Calcula a porcentagem de scroll
+      const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+      
+      if (scrollPercentage >= 80 && !hasScrolled80Percent) {
+        setHasScrolled80Percent(true);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [isNewlyGenerated, hasScrolled80Percent]);
+
+  // Timer: 40 segundos após primeira interação
+  useEffect(() => {
+    if (!firstInteractionTime || !canShowCsat()) return;
+
     const timer = setTimeout(() => {
-      setShowCsatModal(true);
-    }, 8000);
+      if (canShowCsat()) {
+        setShowCsatModal(true);
+      }
+    }, 40000); // 40 segundos após primeira interação
 
     return () => clearTimeout(timer);
-  }, [isNewlyGenerated, apiMenuData?.plan_id, csatDismissed]);
+  }, [firstInteractionTime, csatDismissed, isNewlyGenerated, apiMenuData?.plan_id]);
+
+  // Timer: 5 segundos após scroll >= 80%
+  useEffect(() => {
+    if (!hasScrolled80Percent || !canShowCsat()) return;
+
+    const timer = setTimeout(() => {
+      if (canShowCsat()) {
+        setShowCsatModal(true);
+      }
+    }, 5000); // 5 segundos após atingir 80%
+
+    return () => clearTimeout(timer);
+  }, [hasScrolled80Percent, csatDismissed, isNewlyGenerated, apiMenuData?.plan_id]);
 
   const handleCsatClose = () => {
     setShowCsatModal(false);
@@ -345,7 +411,7 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         <div className="p-6">
           {/* Renderizar dados da API */}
           {hasApiData ? (

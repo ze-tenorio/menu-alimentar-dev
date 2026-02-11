@@ -1,6 +1,38 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
+// Função para validar CPF usando o algoritmo oficial
+const validateCPF = (cpf: string): boolean => {
+  // Remove caracteres não numéricos
+  const numbers = cpf.replace(/\D/g, '');
+  
+  // Verifica se tem 11 dígitos
+  if (numbers.length !== 11) return false;
+  
+  // Verifica se todos os dígitos são iguais (CPFs inválidos conhecidos)
+  if (/^(\d)\1{10}$/.test(numbers)) return false;
+  
+  // Calcula o primeiro dígito verificador
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(numbers[i]) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(numbers[9])) return false;
+  
+  // Calcula o segundo dígito verificador
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(numbers[i]) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(numbers[10])) return false;
+  
+  return true;
+};
+
 interface CpfEntryScreenProps {
   onClose: () => void;
   onSubmit: (cpf: string) => void;
@@ -55,6 +87,16 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
     
     if (cpfNumbers.length !== 11) {
       setError('CPF inválido. Digite os 11 dígitos.');
+      return;
+    }
+    
+    if (/^(\d)\1{10}$/.test(cpfNumbers)) {
+      setError('CPF inválido - não pode ter todos os dígitos iguais.');
+      return;
+    }
+    
+    if (!validateCPF(cpf)) {
+      setError('CPF inválido - verifique os números informados.');
       return;
     }
     
@@ -128,8 +170,8 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
           {error && (
             <p className="text-red-500 text-sm mt-2">{error}</p>
           )}
-          {cpf && !error && (
-            <p className="text-primary text-sm mt-2">✓ CPF salvo anteriormente</p>
+          {cpf && !error && validateCPF(cpf) && (
+            <p className="text-primary text-sm mt-2">✓ CPF válido</p>
           )}
         </div>
 
@@ -145,9 +187,9 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
       <div className="p-6 border-t border-gray-200">
         <button
           onClick={handleSubmit}
-          disabled={cpf.replace(/\D/g, '').length !== 11}
+          disabled={!validateCPF(cpf)}
           className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-            cpf.replace(/\D/g, '').length === 11
+            validateCPF(cpf)
               ? 'bg-primary text-primary-foreground hover:bg-primary/90'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}

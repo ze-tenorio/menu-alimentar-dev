@@ -1,11 +1,43 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Plus, Minus, Target, Heart, Activity, Zap, Utensils, FileText, Lightbulb, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Target, Heart, Activity, Zap, Utensils, FileText, Lightbulb, AlertCircle, Mail, Phone } from 'lucide-react';
 
 interface MenuAlimentarFormProps {
   onClose: () => void;
   onComplete: (formData: any) => void;
   initialCpf?: string; // CPF já coletado anteriormente
 }
+
+// Função para validar CPF usando o algoritmo oficial
+const validateCPF = (cpf: string): boolean => {
+  // Remove caracteres não numéricos
+  const numbers = cpf.replace(/\D/g, '');
+  
+  // Verifica se tem 11 dígitos
+  if (numbers.length !== 11) return false;
+  
+  // Verifica se todos os dígitos são iguais (CPFs inválidos conhecidos)
+  if (/^(\d)\1{10}$/.test(numbers)) return false;
+  
+  // Calcula o primeiro dígito verificador
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(numbers[i]) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(numbers[9])) return false;
+  
+  // Calcula o segundo dígito verificador
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(numbers[i]) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(numbers[10])) return false;
+  
+  return true;
+};
 
 const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComplete, initialCpf }) => {
   // Se já tem CPF, começa no step 2; senão, começa no step 1
@@ -14,8 +46,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     // Step 1: CPF (patient_id) - pode vir preenchido
     cpf: initialCpf || '',
     
-    // Step 2: Nome e Sexo Biológico
+    // Step 2: Nome, Email, Telefone e Sexo Biológico
     fullName: '',
+    email: '',
+    phone: '',
     gender: '',
     
     // Step 3: Dados de Saúde
@@ -63,10 +97,14 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   const validateCurrentStep = useMemo(() => {
     switch (currentStep) {
       case 1: // CPF
-        const cpfNumbers = formData.cpf.replace(/\D/g, '');
-        return cpfNumbers.length === 11;
-      case 2: // Nome e Sexo
-        return formData.fullName.trim().length >= 3 && formData.gender !== '';
+        return validateCPF(formData.cpf);
+      case 2: // Nome, Email, Telefone e Sexo
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneNumbers = formData.phone.replace(/\D/g, '');
+        return formData.fullName.trim().length >= 3 && 
+               emailRegex.test(formData.email) &&
+               phoneNumbers.length >= 10 && phoneNumbers.length <= 11 &&
+               formData.gender !== '';
       case 3: // Idade, Peso, Altura
         const age = parseInt(formData.age);
         const weight = parseFloat(formData.weight);
@@ -103,10 +141,22 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   const getValidationMessage = () => {
     switch (currentStep) {
       case 1:
-        return 'Por favor, informe um CPF válido (11 dígitos).';
+        const cpfNumbers = formData.cpf.replace(/\D/g, '');
+        if (cpfNumbers.length !== 11) {
+          return 'Por favor, informe um CPF com 11 dígitos.';
+        }
+        return 'CPF inválido. Por favor, verifique os números informados.';
       case 2:
         if (formData.fullName.trim().length < 3) {
           return 'Por favor, informe seu nome completo (mínimo 3 caracteres).';
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+          return 'Por favor, informe um e-mail válido.';
+        }
+        const phoneNumbers = formData.phone.replace(/\D/g, '');
+        if (phoneNumbers.length < 10 || phoneNumbers.length > 11) {
+          return 'Por favor, informe um telefone válido (10 ou 11 dígitos).';
         }
         if (formData.gender === '') {
           return 'Por favor, selecione seu sexo biológico.';
@@ -173,6 +223,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return {
       request_metadata: {
         patient_id: data.cpf.replace(/\D/g, ''), // Remove formatação do CPF
+        provider_id: "188b33d8-a493-4753-b8dd-5f05fa6495b0",
         request_type: "plan_builder"
       },
       patient_profile: {
@@ -180,7 +231,9 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
         gender: data.gender,
         age: parseInt(data.age) || 0,
         current_weight_kg: parseFloat(data.weight) || 0,
-        height_m: heightInMeters
+        height_m: heightInMeters,
+        email: data.email,
+        phone: '+55' + data.phone.replace(/\D/g, '')
       },
       nutritional_plan_goals: {
         primary_objective: data.objective
@@ -294,8 +347,16 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
 
   const renderStep1 = () => {
     const cpfNumbers = formData.cpf.replace(/\D/g, '');
-    const isValid = cpfNumbers.length === 11;
+    const hasCorrectLength = cpfNumbers.length === 11;
+    const isValid = validateCPF(formData.cpf);
     const showError = showValidationError && !isValid;
+    
+    // Mensagem de erro específica
+    const getErrorMessage = () => {
+      if (!hasCorrectLength) return 'CPF deve ter 11 dígitos';
+      if (/^(\d)\1{10}$/.test(cpfNumbers)) return 'CPF inválido - não pode ter todos os dígitos iguais';
+      return 'CPF inválido - verifique os números informados';
+    };
     
     return (
       <div className="space-y-6">
@@ -340,7 +401,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             }`}
           />
           {showError && (
-            <p className="text-red-500 text-sm mt-1">CPF deve ter 11 dígitos</p>
+            <p className="text-red-500 text-sm mt-1">{getErrorMessage()}</p>
           )}
         </div>
       </div>
@@ -349,9 +410,24 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
 
   const renderStep2 = () => {
     const nameValid = formData.fullName.trim().length >= 3;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailValid = emailRegex.test(formData.email);
+    const phoneNumbers = formData.phone.replace(/\D/g, '');
+    const phoneValid = phoneNumbers.length >= 10 && phoneNumbers.length <= 11;
     const genderValid = formData.gender !== '';
     const showNameError = showValidationError && !nameValid;
+    const showEmailError = showValidationError && !emailValid;
+    const showPhoneError = showValidationError && !phoneValid;
     const showGenderError = showValidationError && !genderValid;
+
+    // Função para formatar telefone
+    const formatPhone = (value: string) => {
+      const numbers = value.replace(/\D/g, '');
+      if (numbers.length <= 2) return `(${numbers}`;
+      if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+      if (numbers.length <= 11) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+    };
     
     return (
       <div className="space-y-6">
@@ -360,10 +436,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             <Heart className="w-6 h-6 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados Pessoais</h2>
-          <p className="text-gray-600 text-base">Informe seu nome completo e sexo biológico</p>
+          <p className="text-gray-600 text-base">Informe seus dados de identificação</p>
         </div>
         
         <div className="space-y-4">
+          {/* Nome Completo */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">
               Nome Completo <span className="text-red-500">*</span>
@@ -383,7 +460,56 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
               <p className="text-red-500 text-sm mt-1">Nome deve ter pelo menos 3 caracteres</p>
             )}
           </div>
+
+          {/* E-mail */}
+          <div>
+            <label className="flex items-center text-gray-700 font-medium mb-2">
+              <Mail className="w-4 h-4 mr-2 text-gray-500" />
+              E-mail <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="email"
+              placeholder="seu.email@exemplo.com"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+                showEmailError 
+                  ? 'border-red-400 focus:ring-red-200' 
+                  : 'border-gray-200 focus:ring-primary/20'
+              }`}
+            />
+            {showEmailError && (
+              <p className="text-red-500 text-sm mt-1">Por favor, informe um e-mail válido</p>
+            )}
+          </div>
+
+          {/* Telefone */}
+          <div>
+            <label className="flex items-center text-gray-700 font-medium mb-2">
+              <Phone className="w-4 h-4 mr-2 text-gray-500" />
+              Telefone <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="(11) 99999-9999"
+              value={formData.phone}
+              onChange={(e) => {
+                const formatted = formatPhone(e.target.value);
+                handleInputChange('phone', formatted);
+              }}
+              maxLength={15}
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+                showPhoneError 
+                  ? 'border-red-400 focus:ring-red-200' 
+                  : 'border-gray-200 focus:ring-primary/20'
+              }`}
+            />
+            {showPhoneError && (
+              <p className="text-red-500 text-sm mt-1">Por favor, informe um telefone válido</p>
+            )}
+          </div>
           
+          {/* Sexo Biológico */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">
               Sexo Biológico <span className="text-red-500">*</span>

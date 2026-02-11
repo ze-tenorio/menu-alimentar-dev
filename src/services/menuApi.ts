@@ -8,9 +8,10 @@
 export interface MenuApiPayload {
   request_metadata: {
     patient_id: string;
-    doctor_id: string;
-    appointment_id: string;
-    region: string;
+    doctor_id?: string;
+    appointment_id?: string;
+    provider_id: string;
+    region?: string;
     request_type: string;
   };
   patient_profile: {
@@ -19,6 +20,8 @@ export interface MenuApiPayload {
     age: number;
     current_weight_kg: number;
     height_m: number;
+    email: string;
+    phone: string;
   };
   nutritional_plan_goals: {
     primary_objective: string;
