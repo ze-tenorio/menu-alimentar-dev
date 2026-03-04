@@ -204,6 +204,11 @@ const App = () => {
     setShowGeneratedMenu(false);
   };
 
+  const handleGeneratedMenuGoHome = () => {
+    setShowGeneratedMenu(false);
+    setShowMenuAlimentar(true);
+  };
+
   const handleGeneratedMenuBack = async () => {
     setShowGeneratedMenu(false);
     
@@ -277,6 +282,9 @@ const App = () => {
   };
 
   const handleViewMenu = async (menuId: string) => {
+    setShowMenuAlimentar(false);
+    setShowMenusList(false);
+
     // Primeiro tenta encontrar nos menus criados nesta sessão
     const localMenu = createdMenus.find(m => m.id === menuId);
     if (localMenu) {
@@ -286,7 +294,6 @@ const App = () => {
         } 
       });
       setCurrentMenu(localMenu.menuData || null);
-      setShowMenusList(false);
       setIsMenuNewlyGenerated(false); // Não é recém-gerado, está visualizando histórico
       setShowGeneratedMenu(true);
       return;
@@ -295,10 +302,9 @@ const App = () => {
     // Se não encontrou localmente, é um menu histórico - buscar da API
     if (!userCpf) {
       alert('Erro: CPF não encontrado. Por favor, tente novamente.');
+      setShowMenuAlimentar(true);
       return;
     }
-    
-    setShowMenusList(false);
     setLoadingType('loading-history');
     setShowMenuLoading(true);
     
@@ -469,6 +475,7 @@ const App = () => {
       <GeneratedMenuScreen 
         onClose={handleGeneratedMenuClose} 
         onBack={handleGeneratedMenuBack} 
+        onGoHome={handleGeneratedMenuGoHome}
         onViewMenus={handleViewMenus} 
         objective={currentObjective}
         menuData={currentMenu}

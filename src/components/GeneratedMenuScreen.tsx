@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
 import { MenuPlan } from '../services/menuApi';
 import CsatModal from './CsatModal';
 import { submitCsatEvaluation, isPlanEvaluated } from '../services/csatApi';
@@ -7,6 +7,7 @@ import { submitCsatEvaluation, isPlanEvaluated } from '../services/csatApi';
 interface GeneratedMenuScreenProps {
   onClose: () => void;
   onBack: () => void;
+  onGoHome?: () => void;
   onViewMenus: () => void;
   objective?: string;
   menuData?: MenuPlan | null;
@@ -16,6 +17,7 @@ interface GeneratedMenuScreenProps {
 const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({ 
   onClose, 
   onBack, 
+  onGoHome,
   onViewMenus,
   objective,
   menuData: apiMenuData,
@@ -389,11 +391,17 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <button onClick={onBack} className="text-gray-600 hover:text-gray-800">
+        <button onClick={onBack} className="text-gray-600 hover:text-gray-800 p-1" aria-label="Voltar">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-lg font-semibold text-gray-800">Meus Menus</h1>
-        <div className="w-6"></div> {/* Spacer para manter centralização */}
+        {onGoHome ? (
+          <button onClick={onGoHome} className="text-gray-600 hover:text-gray-800 p-1" aria-label="Ir para início">
+            <Home size={24} />
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
       </div>
 
       {/* Fixed Header */}
