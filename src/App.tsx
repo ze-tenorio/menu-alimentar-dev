@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import WelcomeBannerScreen from "./components/WelcomeBannerScreen";
 import TransitionScreen from "./components/TransitionScreen";
-import MenuAlimentarScreen from "./components/MenuAlimentarScreen";
+import HomeScreen from "./components/HomeScreen";
 import MenuAlimentarForm from "./components/MenuAlimentarForm";
 import MenuLoadingScreen from "./components/MenuLoadingScreen";
 import GeneratedMenuScreen from "./components/GeneratedMenuScreen";
@@ -19,7 +20,8 @@ const App = () => {
     }
   };
 
-  const [showTransition, setShowTransition] = useState(true);
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
+  const [showTransition, setShowTransition] = useState(false);
   const [showMenuAlimentar, setShowMenuAlimentar] = useState(false);
   const [showCpfEntry, setShowCpfEntry] = useState(false);
   const [showMenuForm, setShowMenuForm] = useState(false);
@@ -42,6 +44,11 @@ const App = () => {
   const [formData, setFormData] = useState<any>(null);
   const [currentMenu, setCurrentMenu] = useState<MenuPlan | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  const handleWelcomeBannerContinue = () => {
+    setShowWelcomeBanner(false);
+    setShowTransition(true);
+  };
 
   const handleTransitionComplete = () => {
     setShowTransition(false);
@@ -377,6 +384,16 @@ const App = () => {
     }
   };
 
+  // Pré-carregar histórico na Home quando há CPF para exibir "Últimos menus"
+  useEffect(() => {
+    if (!showMenuAlimentar || !userCpf) return;
+    getMenuHistory(userCpf).then((result) => {
+      if (result.success && result.menus.length > 0) {
+        setHistoricalMenus(result.menus);
+      }
+    });
+  }, [showMenuAlimentar, userCpf]);
+
   const getObjectiveId = (type: string) => {
     switch (type) {
       case 'weight_loss':
@@ -390,18 +407,33 @@ const App = () => {
     }
   };
 
+  if (showWelcomeBanner) {
+    return <WelcomeBannerScreen onContinue={handleWelcomeBannerContinue} />;
+  }
+
   if (showTransition) {
     return <TransitionScreen onComplete={handleTransitionComplete} title="Menu Alimentar" />;
   }
 
   if (showMenuAlimentar) {
+    const recentMenus = historicalMenus.length > 0
+      ? historicalMenus.map((m) => ({
+          id: m.id,
+          title: m.title,
+          objective: m.objective,
+          date: m.date,
+          type: m.type,
+          daily_energy_kcal: m.daily_energy_kcal,
+          current_weight: m.current_weight,
+          age: m.age,
+        }))
+      : createdMenus;
     return (
-      <MenuAlimentarScreen 
-        onClose={handleMenuAlimentarClose} 
-        onStartForm={handleMenuFormOpen} 
-        onViewMenus={handleViewMenus} 
-        hasCreatedMenu={hasCreatedMenu} 
-        menuCount={createdMenus.length}
+      <HomeScreen
+        onGenerateMenu={handleMenuFormOpen}
+        onViewMenus={handleViewMenus}
+        onViewMenu={handleViewMenu}
+        recentMenus={recentMenus}
       />
     );
   }
