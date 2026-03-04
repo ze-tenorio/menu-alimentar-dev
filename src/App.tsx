@@ -52,7 +52,16 @@ const App = () => {
 
   const handleTransitionComplete = () => {
     setShowTransition(false);
-    setShowMenuAlimentar(true);
+    setShowCpfEntry(true);
+  };
+
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem("userCpf");
+    } catch (_) {}
+    setUserCpf("");
+    setShowMenuAlimentar(false);
+    setShowCpfEntry(true);
   };
 
   const handleMenuAlimentarClose = () => {
@@ -96,7 +105,7 @@ const App = () => {
 
   const handleCpfEntryClose = () => {
     setShowCpfEntry(false);
-    setShowMenuAlimentar(true);
+    setShowTransition(true);
   };
 
   const handleCpfSubmit = async (cpf: string) => {
@@ -119,7 +128,7 @@ const App = () => {
       if (result.success) {
         setHistoricalMenus(result.menus);
         setShowMenuLoading(false);
-        setShowMenusList(true);
+        setShowMenuAlimentar(true);
       } else {
         alert('Erro ao buscar menus: ' + (result.error || 'Erro desconhecido'));
         setShowMenuLoading(false);
@@ -433,6 +442,7 @@ const App = () => {
         onGenerateMenu={handleMenuFormOpen}
         onViewMenus={handleViewMenus}
         onViewMenu={handleViewMenu}
+        onLogout={handleLogout}
         recentMenus={recentMenus}
       />
     );

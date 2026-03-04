@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { ChevronRight, Calendar } from "lucide-react";
+import { ChevronRight, Calendar, LogOut } from "lucide-react";
 import { offersCarouselItems } from "../config/offersCarousel";
 
 export interface RecentMenu {
@@ -17,6 +17,7 @@ interface HomeScreenProps {
   onGenerateMenu: () => void;
   onViewMenus: () => void;
   onViewMenu: (menuId: string) => void;
+  onLogout: () => void;
   recentMenus: RecentMenu[];
 }
 
@@ -24,6 +25,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onGenerateMenu,
   onViewMenus,
   onViewMenu,
+  onLogout,
   recentMenus,
 }) => {
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -221,6 +223,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             ))}
           </div>
         </section>
+      </div>
+
+      {/* Botão Sair - canto inferior direito */}
+      <div className="absolute bottom-4 right-4 z-10">
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex items-center gap-2 bg-white text-gray-800 font-medium py-2.5 px-4 rounded-full shadow-md hover:shadow-lg hover:bg-gray-50 transition-all border border-gray-100"
+        >
+          Sair
+          <LogOut size={18} className="text-gray-700" />
+        </button>
       </div>
     </div>
   );
