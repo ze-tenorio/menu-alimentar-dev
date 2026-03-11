@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home, ChevronDown } from 'lucide-react';
 import { MenuPlan } from '../services/menuApi';
 import CsatModal from './CsatModal';
 import { submitCsatEvaluation, isPlanEvaluated } from '../services/csatApi';
@@ -7,6 +7,7 @@ import { submitCsatEvaluation, isPlanEvaluated } from '../services/csatApi';
 interface GeneratedMenuScreenProps {
   onClose: () => void;
   onBack: () => void;
+  onGoHome?: () => void;
   onViewMenus: () => void;
   objective?: string;
   menuData?: MenuPlan | null;
@@ -16,6 +17,7 @@ interface GeneratedMenuScreenProps {
 const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({ 
   onClose, 
   onBack, 
+  onGoHome,
   onViewMenus,
   objective,
   menuData: apiMenuData,
@@ -25,7 +27,17 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
   const [csatDismissed, setCsatDismissed] = useState(false);
   const [firstInteractionTime, setFirstInteractionTime] = useState<number | null>(null);
   const [hasScrolled80Percent, setHasScrolled80Percent] = useState(false);
+  const [expandedMealIndices, setExpandedMealIndices] = useState<Set<number>>(new Set());
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const toggleMeal = (index: number) => {
+    setExpandedMealIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   // Função para verificar se pode mostrar CSAT
   const canShowCsat = () => {
@@ -347,40 +359,56 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
           </div>
         )}
 
-        {/* Refeições */}
-        {mealsArray.map((meal, mealIndex) => (
-          <div key={mealIndex} className="mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-1">{meal.name}</h3>
-            <p className="text-gray-600 text-sm mb-3">Meta: {meal.target_kcal} kcal</p>
-            <p className="text-gray-600 text-sm mb-4 italic">Escolha uma opção abaixo:</p>
-            
-            {meal.items && meal.items.map((item, itemIndex) => (
-              <div key={itemIndex} className="bg-gray-50 rounded-lg p-4 mb-3">
-                <h4 className="font-semibold text-gray-800 mb-2">{item.name}</h4>
-                <p className="text-gray-700 text-sm mb-3 whitespace-pre-line">{item.description}</p>
-                
-                {item.portion && (
-                  <div className="bg-gray-200 rounded-lg p-3 mb-2">
-                    <p className="text-gray-700 font-medium text-sm">{item.portion}</p>
-                  </div>
-                )}
-                
-                {item.alternatives && item.alternatives.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-gray-600 text-xs font-semibold mb-1">Substituições:</p>
-                    {item.alternatives.map((alt, altIndex) => (
-                      <p key={altIndex} className="text-gray-600 text-xs ml-2">• {alt}</p>
-                    ))}
-                  </div>
-                )}
-                
-                {item.notes && (
-                  <p className="text-gray-500 text-xs mt-2 italic">{item.notes}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
+        {/* Refeições expansíveis */}
+        {mealsArray.map((meal, mealIndex) => {
+          const isExpanded = expandedMealIndices.has(mealIndex);
+          return (
+            <div key={mealIndex} className="mb-3 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+              <button
+                type="button"
+                onClick={() => toggleMeal(mealIndex)}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                aria-expanded={isExpanded}
+              >
+                <div>
+                  <h3 className="text-base font-bold text-gray-800">{meal.name}</h3>
+                  <p className="text-gray-600 text-sm mt-0.5">Meta: {meal.target_kcal} kcal</p>
+                </div>
+                <ChevronDown
+                  size={22}
+                  className={`text-gray-500 flex-shrink-0 ml-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {isExpanded && meal.items && meal.items.length > 0 && (
+                <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-3">
+                  <p className="text-gray-600 text-sm mb-3 italic">Escolha uma opção abaixo:</p>
+                  {meal.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="bg-white rounded-lg p-4 mb-3 border border-gray-100">
+                      <h4 className="font-semibold text-gray-800 mb-2">{item.name}</h4>
+                      <p className="text-gray-700 text-sm mb-3 whitespace-pre-line">{item.description}</p>
+                      {item.portion && (
+                        <div className="bg-gray-100 rounded-lg p-3 mb-2">
+                          <p className="text-gray-700 font-medium text-sm">{item.portion}</p>
+                        </div>
+                      )}
+                      {item.alternatives && item.alternatives.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-gray-600 text-xs font-semibold mb-1">Substituições:</p>
+                          {item.alternatives.map((alt, altIndex) => (
+                            <p key={altIndex} className="text-gray-600 text-xs ml-2">• {alt}</p>
+                          ))}
+                        </div>
+                      )}
+                      {item.notes && (
+                        <p className="text-gray-500 text-xs mt-2 italic">{item.notes}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </>
     );
   };
@@ -389,11 +417,17 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <button onClick={onBack} className="text-gray-600 hover:text-gray-800">
+        <button onClick={onBack} className="text-gray-600 hover:text-gray-800 p-1" aria-label="Voltar">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-lg font-semibold text-gray-800">Meus Menus</h1>
-        <div className="w-6"></div> {/* Spacer para manter centralização */}
+        {onGoHome ? (
+          <button onClick={onGoHome} className="text-gray-600 hover:text-gray-800 p-1" aria-label="Ir para início">
+            <Home size={24} />
+          </button>
+        ) : (
+          <div className="w-6" />
+        )}
       </div>
 
       {/* Fixed Header */}

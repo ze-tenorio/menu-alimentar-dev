@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import WelcomeBannerScreen from "./components/WelcomeBannerScreen";
 import TransitionScreen from "./components/TransitionScreen";
-import MenuAlimentarScreen from "./components/MenuAlimentarScreen";
+import HomeScreen from "./components/HomeScreen";
 import MenuAlimentarForm from "./components/MenuAlimentarForm";
 import MenuLoadingScreen from "./components/MenuLoadingScreen";
 import GeneratedMenuScreen from "./components/GeneratedMenuScreen";
@@ -19,7 +20,8 @@ const App = () => {
     }
   };
 
-  const [showTransition, setShowTransition] = useState(true);
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(true);
+  const [showTransition, setShowTransition] = useState(false);
   const [showMenuAlimentar, setShowMenuAlimentar] = useState(false);
   const [showCpfEntry, setShowCpfEntry] = useState(false);
   const [showMenuForm, setShowMenuForm] = useState(false);
@@ -43,9 +45,23 @@ const App = () => {
   const [currentMenu, setCurrentMenu] = useState<MenuPlan | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  const handleWelcomeBannerContinue = () => {
+    setShowWelcomeBanner(false);
+    setShowTransition(true);
+  };
+
   const handleTransitionComplete = () => {
     setShowTransition(false);
-    setShowMenuAlimentar(true);
+    setShowCpfEntry(true);
+  };
+
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem("userCpf");
+    } catch (_) {}
+    setUserCpf("");
+    setShowMenuAlimentar(false);
+    setShowCpfEntry(true);
   };
 
   const handleMenuAlimentarClose = () => {
@@ -89,7 +105,7 @@ const App = () => {
 
   const handleCpfEntryClose = () => {
     setShowCpfEntry(false);
-    setShowMenuAlimentar(true);
+    setShowTransition(true);
   };
 
   const handleCpfSubmit = async (cpf: string) => {
@@ -112,7 +128,7 @@ const App = () => {
       if (result.success) {
         setHistoricalMenus(result.menus);
         setShowMenuLoading(false);
-        setShowMenusList(true);
+        setShowMenuAlimentar(true);
       } else {
         alert('Erro ao buscar menus: ' + (result.error || 'Erro desconhecido'));
         setShowMenuLoading(false);
@@ -188,6 +204,11 @@ const App = () => {
     setShowGeneratedMenu(false);
   };
 
+  const handleGeneratedMenuGoHome = () => {
+    setShowGeneratedMenu(false);
+    setShowMenuAlimentar(true);
+  };
+
   const handleGeneratedMenuBack = async () => {
     setShowGeneratedMenu(false);
     
@@ -261,6 +282,9 @@ const App = () => {
   };
 
   const handleViewMenu = async (menuId: string) => {
+    setShowMenuAlimentar(false);
+    setShowMenusList(false);
+
     // Primeiro tenta encontrar nos menus criados nesta sessão
     const localMenu = createdMenus.find(m => m.id === menuId);
     if (localMenu) {
@@ -270,7 +294,6 @@ const App = () => {
         } 
       });
       setCurrentMenu(localMenu.menuData || null);
-      setShowMenusList(false);
       setIsMenuNewlyGenerated(false); // Não é recém-gerado, está visualizando histórico
       setShowGeneratedMenu(true);
       return;
@@ -279,10 +302,9 @@ const App = () => {
     // Se não encontrou localmente, é um menu histórico - buscar da API
     if (!userCpf) {
       alert('Erro: CPF não encontrado. Por favor, tente novamente.');
+      setShowMenuAlimentar(true);
       return;
     }
-    
-    setShowMenusList(false);
     setLoadingType('loading-history');
     setShowMenuLoading(true);
     
@@ -377,6 +399,16 @@ const App = () => {
     }
   };
 
+  // Pré-carregar histórico na Home quando há CPF para exibir "Últimos menus"
+  useEffect(() => {
+    if (!showMenuAlimentar || !userCpf) return;
+    getMenuHistory(userCpf).then((result) => {
+      if (result.success && result.menus.length > 0) {
+        setHistoricalMenus(result.menus);
+      }
+    });
+  }, [showMenuAlimentar, userCpf]);
+
   const getObjectiveId = (type: string) => {
     switch (type) {
       case 'weight_loss':
@@ -390,18 +422,34 @@ const App = () => {
     }
   };
 
+  if (showWelcomeBanner) {
+    return <WelcomeBannerScreen onContinue={handleWelcomeBannerContinue} />;
+  }
+
   if (showTransition) {
     return <TransitionScreen onComplete={handleTransitionComplete} title="Menu Alimentar" />;
   }
 
   if (showMenuAlimentar) {
+    const recentMenus = historicalMenus.length > 0
+      ? historicalMenus.map((m) => ({
+          id: m.id,
+          title: m.title,
+          objective: m.objective,
+          date: m.date,
+          type: m.type,
+          daily_energy_kcal: m.daily_energy_kcal,
+          current_weight: m.current_weight,
+          age: m.age,
+        }))
+      : createdMenus;
     return (
-      <MenuAlimentarScreen 
-        onClose={handleMenuAlimentarClose} 
-        onStartForm={handleMenuFormOpen} 
-        onViewMenus={handleViewMenus} 
-        hasCreatedMenu={hasCreatedMenu} 
-        menuCount={createdMenus.length}
+      <HomeScreen
+        onGenerateMenu={handleMenuFormOpen}
+        onViewMenus={handleViewMenus}
+        onViewMenu={handleViewMenu}
+        onLogout={handleLogout}
+        recentMenus={recentMenus}
       />
     );
   }
@@ -427,6 +475,7 @@ const App = () => {
       <GeneratedMenuScreen 
         onClose={handleGeneratedMenuClose} 
         onBack={handleGeneratedMenuBack} 
+        onGoHome={handleGeneratedMenuGoHome}
         onViewMenus={handleViewMenus} 
         objective={currentObjective}
         menuData={currentMenu}

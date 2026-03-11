@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 
 // Função para validar CPF usando o algoritmo oficial
 const validateCPF = (cpf: string): boolean => {
@@ -113,13 +112,6 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-        {/* Back Button */}
-        <div className="absolute top-4 left-4">
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-800">
-            <ArrowLeft size={24} />
-          </button>
-        </div>
-
         {/* Logo */}
         <div className="mb-8 mt-4">
           <div className="flex flex-col items-center justify-center">
