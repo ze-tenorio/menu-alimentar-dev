@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
+import { Check } from 'lucide-react';
 
-// Função para validar CPF usando o algoritmo oficial
 const validateCPF = (cpf: string): boolean => {
-  // Remove caracteres não numéricos
   const numbers = cpf.replace(/\D/g, '');
-  
-  // Verifica se tem 11 dígitos
   if (numbers.length !== 11) return false;
-  
-  // Verifica se todos os dígitos são iguais (CPFs inválidos conhecidos)
   if (/^(\d)\1{10}$/.test(numbers)) return false;
-  
-  // Calcula o primeiro dígito verificador
   let sum = 0;
   for (let i = 0; i < 9; i++) {
     sum += parseInt(numbers[i]) * (10 - i);
@@ -19,8 +12,6 @@ const validateCPF = (cpf: string): boolean => {
   let remainder = (sum * 10) % 11;
   if (remainder === 10 || remainder === 11) remainder = 0;
   if (remainder !== parseInt(numbers[9])) return false;
-  
-  // Calcula o segundo dígito verificador
   sum = 0;
   for (let i = 0; i < 10; i++) {
     sum += parseInt(numbers[i]) * (11 - i);
@@ -28,7 +19,6 @@ const validateCPF = (cpf: string): boolean => {
   remainder = (sum * 10) % 11;
   if (remainder === 10 || remainder === 11) remainder = 0;
   if (remainder !== parseInt(numbers[10])) return false;
-  
   return true;
 };
 
@@ -37,16 +27,11 @@ interface CpfEntryScreenProps {
   onSubmit: (cpf: string) => void;
 }
 
-const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) => {
-  // Carregar CPF salvo do sessionStorage
+const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose: _onClose, onSubmit }) => {
   const getSavedCpf = () => {
     try {
       const savedCpf = sessionStorage.getItem('userCpf');
-      if (savedCpf) {
-        // Formatar CPF salvo
-        const formatted = formatCPF(savedCpf);
-        return formatted;
-      }
+      if (savedCpf) return formatCPF(savedCpf);
     } catch (error) {
       console.error('Erro ao carregar CPF do sessionStorage:', error);
     }
@@ -57,10 +42,7 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
   const [error, setError] = useState('');
 
   const formatCPF = (value: string) => {
-    // Remove tudo que não é número
     const numbers = value.replace(/\D/g, '');
-    
-    // Aplica formatação
     let formatted = numbers;
     if (numbers.length > 3) {
       formatted = numbers.slice(0, 3) + '.' + numbers.slice(3);
@@ -71,80 +53,57 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
     if (numbers.length > 9) {
       formatted = formatted.slice(0, 11) + '-' + numbers.slice(9, 11);
     }
-    
     return formatted;
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCPF(e.target.value);
-    setCpf(formatted);
+    setCpf(formatCPF(e.target.value));
     setError('');
   };
 
   const handleSubmit = () => {
     const cpfNumbers = cpf.replace(/\D/g, '');
-    
     if (cpfNumbers.length !== 11) {
       setError('CPF inválido. Digite os 11 dígitos.');
       return;
     }
-    
     if (/^(\d)\1{10}$/.test(cpfNumbers)) {
-      setError('CPF inválido - não pode ter todos os dígitos iguais.');
+      setError('CPF inválido — não pode ter todos os dígitos iguais.');
       return;
     }
-    
     if (!validateCPF(cpf)) {
-      setError('CPF inválido - verifique os números informados.');
+      setError('CPF inválido — verifique os números informados.');
       return;
     }
-    
     onSubmit(cpfNumbers);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubmit();
-    }
+    if (e.key === 'Enter') handleSubmit();
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-        {/* Logo */}
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 max-w-md mx-auto w-full">
         <div className="mb-8 mt-4">
           <div className="flex flex-col items-center justify-center">
-            <img 
-              src="/logo-totalpass-new.png" 
-              alt="TotalPass Logo"
-              className="w-48 h-auto object-contain mb-3"
-            />
-            {/* Powered by Starbem */}
-            <div className="flex items-center justify-center opacity-50">
-              <span className="text-gray-500 text-xs mr-2">powered by</span>
-              <img 
-                src="/logo-starbem.png" 
-                alt="Starbem"
-                className="h-4 object-contain"
-              />
+            <img src="/logo-totalpass-new.png" alt="TotalPass" className="w-44 h-auto object-contain mb-3 opacity-95" />
+            <div className="flex items-center justify-center text-muted-foreground">
+              <span className="text-xs mr-2">powered by</span>
+              <img src="/logo-starbem.png" alt="Starbem" className="h-4 object-contain" />
             </div>
           </div>
         </div>
 
-        {/* Title */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Acesse seus menus
-          </h2>
-          <p className="text-gray-600 text-base">
-            Digite seu CPF para visualizar seus planos alimentares
+        <div className="text-center mb-8 w-full">
+          <h2 className="app-screen-title mb-2">Acesse seus menus</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Digite seu CPF para visualizar seus planos alimentares.
           </p>
         </div>
 
-        {/* CPF Input */}
-        <div className="w-full max-w-md">
-          <label className="block text-gray-700 font-medium mb-2">CPF</label>
+        <div className="w-full">
+          <label className="block app-muted-label mb-2">CPF</label>
           <input
             type="text"
             placeholder="000.000.000-00"
@@ -152,38 +111,36 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
             onChange={handleCpfChange}
             onKeyPress={handleKeyPress}
             maxLength={14}
-            className={`w-full p-4 border-2 rounded-lg text-lg focus:outline-none focus:ring-2 ${
-              error 
-                ? 'border-red-500 focus:ring-red-200' 
-                : 'border-gray-200 focus:ring-primary/20'
+            className={`w-full p-3.5 border rounded-lg text-base text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-ring/30 ${
+              error ? 'border-destructive' : 'border-border'
             }`}
             autoFocus
           />
-          {error && (
-            <p className="text-red-500 text-sm mt-2">{error}</p>
-          )}
+          {error && <p className="text-destructive text-sm mt-2">{error}</p>}
           {cpf && !error && validateCPF(cpf) && (
-            <p className="text-primary text-sm mt-2">✓ CPF válido</p>
+            <p className="text-primary text-sm mt-2 flex items-center gap-1.5">
+              <Check className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+              CPF válido
+            </p>
           )}
         </div>
 
-        {/* Info Card */}
-        <div className="w-full max-w-md mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-800 text-sm">
-            <strong>Dica:</strong> Você pode acessar seus menus anteriores ou criar um novo plano personalizado.
+        <div className="w-full mt-8 app-card p-4 bg-muted/30">
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            <span className="font-medium text-foreground">Dica:</span> você pode acessar menus anteriores ou criar um novo plano personalizado.
           </p>
         </div>
       </div>
 
-      {/* Footer Button */}
-      <div className="p-6 border-t border-gray-200">
+      <div className="p-6 border-t border-border shrink-0">
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!validateCPF(cpf)}
-          className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
+          className={`w-full py-3.5 rounded-lg font-medium text-base transition-colors ${
             validateCPF(cpf)
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              ? 'bg-primary text-primary-foreground hover:opacity-95'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
         >
           Continuar
@@ -194,4 +151,3 @@ const CpfEntryScreen: React.FC<CpfEntryScreenProps> = ({ onClose, onSubmit }) =>
 };
 
 export default CpfEntryScreen;
-

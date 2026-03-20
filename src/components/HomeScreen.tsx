@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { ChevronRight, Calendar, LogOut } from "lucide-react";
+import { ChevronRight, Calendar, LogOut, ClipboardList, TrendingDown, Dumbbell, Scale } from "lucide-react";
 import { offersCarouselItems } from "../config/offersCarousel";
 
 export interface RecentMenu {
@@ -15,18 +15,22 @@ export interface RecentMenu {
 
 interface HomeScreenProps {
   onGenerateMenu: () => void;
+  onOpenRoadmap: () => void;
   onViewMenus: () => void;
   onViewMenu: (menuId: string) => void;
   onLogout: () => void;
   recentMenus: RecentMenu[];
+  embedded?: boolean;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   onGenerateMenu,
+  onOpenRoadmap,
   onViewMenus,
   onViewMenu,
   onLogout,
   recentMenus,
+  embedded = false,
 }) => {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -52,86 +56,73 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   }, []);
 
   const getObjectiveIcon = (type: string) => {
+    const iconClass = "w-5 h-5 text-primary";
     switch (type) {
       case "weight_loss":
-        return "📉";
+        return <TrendingDown className={iconClass} strokeWidth={2} />;
       case "muscle_gain":
-        return "💪";
+        return <Dumbbell className={iconClass} strokeWidth={2} />;
       default:
-        return "⚖️";
+        return <Scale className={iconClass} strokeWidth={2} />;
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      <div className="flex-1 overflow-y-auto">
-        {/* Header com logo */}
+    <div className={`${embedded ? "h-full" : "fixed inset-0 z-50"} bg-background flex flex-col relative`}>
+      <div className="flex-1 min-h-0 overflow-y-auto pb-20 max-w-lg mx-auto w-full">
         <div className="px-4 pt-6 pb-2">
-          <div className="flex items-center justify-center mb-4">
-            <img
-              src="/logo-totalpass-new.png"
-              alt="TotalPass"
-              className="h-8 object-contain"
-            />
-            <span className="text-gray-500 text-xs ml-2 opacity-70">
-              powered by <img src="/logo-starbem.png" alt="Starbem" className="h-3 inline" />
-            </span>
-          </div>
-          <h1 className="text-gray-900 text-xl font-bold">Olá!</h1>
-          <p className="text-gray-600 text-sm mt-0.5">
+          <p className="app-muted-label mb-1">Início</p>
+          <h1 className="app-screen-title">Olá!</h1>
+          <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
             Você está na jornada do menu. Crie e acesse seus planos alimentares aqui.
           </p>
         </div>
 
-        {/* Banner Gerar menu: imagem à esquerda (altura total), texto + botão à direita */}
+        {/* Banner de acesso ao roadmap */}
         <div className="px-4 mb-6">
-          <div className="rounded-2xl overflow-hidden bg-[#d4edda] border border-green-200/80 shadow-sm flex flex-row min-h-[140px]">
+          <div className="rounded-lg overflow-hidden border border-border bg-primary/5 flex flex-row min-h-[132px]">
             <div className="w-[38%] min-w-[120px] flex-shrink-0 relative self-stretch">
               <img
-                src="/banners/gerar-menu-banner.png"
+                src="/banners/roadmap-banner.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover object-left"
               />
             </div>
             <div className="flex-1 p-4 flex flex-col justify-center min-w-0">
-              <h2 className="text-gray-800 text-base font-bold leading-snug mb-0.5">
-                Receba um plano alimentar
-              </h2>
-              <p className="text-gray-700 text-sm mb-3">
-                detalhado e ajustado para você
+              <h2 className="text-foreground text-base font-semibold leading-snug mb-1">Acompanhe sua jornada</h2>
+              <p className="text-muted-foreground text-sm mb-3 leading-relaxed">
+                Veja os próximos passos para atingir seu objetivo.
               </p>
               <button
-                onClick={onGenerateMenu}
-                className="self-start bg-[#0d6b2e] text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#0a5524] transition-colors"
+                type="button"
+                onClick={onOpenRoadmap}
+                className="self-start bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-medium text-sm hover:opacity-95 transition-opacity"
               >
-                Gerar menu
+                Ver jornada
               </button>
             </div>
           </div>
         </div>
 
-        {/* Últimos menus (estilo Últimas lojas) */}
         <section className="mb-6">
           <div className="flex items-center justify-between px-4 mb-3">
-            <h2 className="text-gray-900 font-bold text-base">Últimos menus</h2>
+            <h2 className="text-foreground font-semibold text-sm tracking-tight">Últimos menus</h2>
             <button
+              type="button"
               onClick={onViewMenus}
-              className="text-primary font-semibold text-sm flex items-center gap-0.5"
+              className="text-primary font-medium text-sm flex items-center gap-0.5"
             >
               Ver mais
-              <ChevronRight size={16} />
+              <ChevronRight size={16} strokeWidth={2} />
             </button>
           </div>
           <div className="overflow-x-auto pb-2 scrollbar-hide">
             <div className="flex gap-3 px-4">
               {recentMenus.length === 0 ? (
-                <div className="flex-shrink-0 w-40 rounded-xl border border-gray-200 bg-gray-50 p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
-                  <span className="text-2xl mb-2">📋</span>
-                  <p className="text-gray-500 text-xs">Nenhum menu ainda</p>
-                  <button
-                    onClick={onGenerateMenu}
-                    className="mt-2 text-primary text-xs font-medium"
-                  >
+                <div className="app-card flex-shrink-0 w-40 p-4 flex flex-col items-center justify-center text-center min-h-[100px]">
+                  <ClipboardList className="w-8 h-8 text-muted-foreground mb-2" strokeWidth={1.75} />
+                  <p className="text-muted-foreground text-xs">Nenhum menu ainda</p>
+                  <button type="button" onClick={onGenerateMenu} className="mt-2 text-primary text-xs font-medium">
                     Gerar primeiro
                   </button>
                 </div>
@@ -139,17 +130,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                 recentMenus.slice(0, 10).map((menu) => (
                   <button
                     key={menu.id}
+                    type="button"
                     onClick={() => onViewMenu(menu.id)}
-                    className="flex-shrink-0 w-36 rounded-xl border border-gray-200 bg-white p-3 text-left shadow-sm hover:shadow-md hover:border-primary/30 transition-all"
+                    className="app-card flex-shrink-0 w-36 p-3 text-left transition-colors hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg mb-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                       {getObjectiveIcon(menu.type)}
                     </div>
-                    <p className="text-gray-800 font-semibold text-sm truncate">
-                      {menu.title}
-                    </p>
-                    <p className="text-gray-500 text-xs flex items-center gap-1 mt-0.5">
-                      <Calendar size={10} />
+                    <p className="text-foreground font-medium text-sm truncate">{menu.title}</p>
+                    <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
+                      <Calendar size={12} strokeWidth={2} />
                       {menu.date}
                     </p>
                   </button>
@@ -159,24 +149,30 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </section>
 
-        {/* Carrossel de ofertas (estilo imagem 1 destaque + imagem 3) */}
+        <div className="px-4 mb-6">
+          <button
+            type="button"
+            onClick={onGenerateMenu}
+            className="w-full rounded-lg border border-border bg-background text-foreground font-medium py-3 text-sm hover:bg-muted/40 transition-colors"
+          >
+            Gerar novo menu
+          </button>
+        </div>
+
         <section className="mb-8">
-          <h2 className="text-gray-900 font-bold text-base px-4 mb-3">O que podemos oferecer</h2>
+          <h2 className="text-foreground font-semibold text-sm px-4 mb-3 tracking-tight">O que podemos oferecer</h2>
           <div
             ref={carouselRef}
-            className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-4 pb-2 scrollbar-hide"
+            className="flex overflow-x-auto snap-x snap-mandatory gap-3 px-4 pb-2 scrollbar-hide"
             style={{ scrollSnapType: "x mandatory" }}
           >
             {offersCarouselItems.map((item) => (
               <div
                 key={item.id}
-                className="flex-shrink-0 w-[85%] max-w-sm rounded-2xl overflow-hidden shadow-md snap-center"
+                className="app-card flex-shrink-0 w-[85%] max-w-sm overflow-hidden snap-center shadow-none"
                 style={{ scrollSnapAlign: "start" }}
               >
-                <div
-                  className={`flex flex-row min-h-[160px] ${item.backgroundClass || "bg-gray-100"}`}
-                >
-                  {/* Imagem à esquerda: ocupa toda a altura do banner */}
+                <div className={`flex flex-row min-h-[160px] ${item.backgroundClass || "bg-muted/40"}`}>
                   {item.imageUrl ? (
                     <div className="w-[40%] min-w-[100px] flex-shrink-0 relative self-stretch">
                       <img
@@ -186,56 +182,61 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="w-[40%] min-w-[100px] flex-shrink-0 self-stretch bg-gray-200/50" />
+                    <div className="w-[40%] min-w-[100px] flex-shrink-0 self-stretch bg-muted/50" />
                   )}
-                  {/* Texto e botão à direita */}
-                  <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+                  <div className="flex-1 p-4 flex flex-col justify-between min-w-0 bg-card">
                     <div>
-                      <h3 className="text-gray-900 font-bold text-base leading-tight">
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-700 text-sm mt-1 line-clamp-2">
-                        {item.subtitle}
-                      </p>
+                      <span className="inline-block text-[10px] font-medium uppercase tracking-wide text-muted-foreground bg-muted px-2 py-0.5 rounded-md mb-2">
+                        Em breve
+                      </span>
+                      <h3 className="text-foreground font-semibold text-sm leading-snug">{item.title}</h3>
+                      <p className="text-muted-foreground text-xs mt-1 line-clamp-2 leading-relaxed">{item.subtitle}</p>
                     </div>
                     <button
-                      onClick={item.onCtaClick}
-                      className={`mt-3 w-full sm:w-auto px-4 py-2 rounded-xl font-semibold text-sm ${item.ctaButtonClass || "bg-primary text-primary-foreground"}`}
+                      type="button"
+                      disabled
+                      className="mt-3 w-full sm:w-auto px-4 py-2 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed border border-border bg-muted text-muted-foreground"
                     >
-                      {item.ctaText}
+                      Em breve
                     </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          {/* Dots do carrossel */}
           <div className="flex justify-center gap-1.5 mt-3">
             {offersCarouselItems.map((_, i) => (
               <button
                 key={i}
+                type="button"
                 onClick={() => scrollToCarouselSlide(i)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === carouselIndex ? "bg-primary w-5" : "bg-gray-300"
+                className={`h-1.5 rounded-full transition-all ${
+                  i === carouselIndex ? "bg-primary w-6" : "bg-muted-foreground/25 w-1.5"
                 }`}
                 aria-label={`Slide ${i + 1}`}
               />
             ))}
           </div>
         </section>
+
+        <div className="px-4 pb-6 pt-2">
+          <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-1">
+            <img src="/logo-totalpass-new.png" alt="TotalPass" className="h-7 object-contain opacity-90" />
+            <span className="text-muted-foreground text-xs">
+              powered by <img src="/logo-starbem.png" alt="Starbem" className="h-3 inline align-middle opacity-90" />
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Botão Sair - canto inferior direito */}
-      <div className="absolute bottom-4 right-4 z-10">
-        <button
-          type="button"
-          onClick={onLogout}
-          className="flex items-center gap-2 bg-white text-gray-800 font-medium py-2.5 px-4 rounded-full shadow-md hover:shadow-lg hover:bg-gray-50 transition-all border border-gray-100"
-        >
-          Sair
-          <LogOut size={18} className="text-gray-700" />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="absolute bottom-3 right-4 z-10 flex items-center gap-2 bg-card/95 backdrop-blur-sm text-foreground font-medium text-sm py-2.5 px-4 rounded-full border border-border shadow-sm hover:bg-card transition-colors"
+      >
+        Sair
+        <LogOut size={18} className="text-muted-foreground" strokeWidth={2} />
+      </button>
     </div>
   );
 };

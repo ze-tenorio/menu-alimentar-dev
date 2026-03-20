@@ -8,6 +8,7 @@ interface GeneratedMenuScreenProps {
   onClose: () => void;
   onBack: () => void;
   onGoHome?: () => void;
+  onViewRoadmap?: () => void;
   onViewMenus: () => void;
   objective?: string;
   menuData?: MenuPlan | null;
@@ -18,6 +19,7 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
   onClose, 
   onBack, 
   onGoHome,
+  onViewRoadmap,
   onViewMenus,
   objective,
   menuData: apiMenuData,
@@ -318,24 +320,24 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
         {/* Informações nutricionais */}
         {apiMenuData.macros && (
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-3">Informações Nutricionais</h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-foreground mb-3">Informações Nutricionais</h3>
+            <div className="bg-muted/40 rounded-lg p-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-gray-600 text-sm">Calorias Diárias</p>
-                  <p className="text-gray-800 font-semibold">{apiMenuData.daily_energy_kcal} kcal</p>
+                  <p className="text-muted-foreground text-sm">Calorias Diárias</p>
+                  <p className="text-foreground font-semibold">{apiMenuData.daily_energy_kcal} kcal</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 text-sm">Proteínas</p>
-                  <p className="text-gray-800 font-semibold">{apiMenuData.macros.protein_g.toFixed(1)}g</p>
+                  <p className="text-muted-foreground text-sm">Proteínas</p>
+                  <p className="text-foreground font-semibold">{apiMenuData.macros.protein_g.toFixed(1)}g</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 text-sm">Carboidratos</p>
-                  <p className="text-gray-800 font-semibold">{apiMenuData.macros.carbs_g.toFixed(1)}g</p>
+                  <p className="text-muted-foreground text-sm">Carboidratos</p>
+                  <p className="text-foreground font-semibold">{apiMenuData.macros.carbs_g.toFixed(1)}g</p>
                 </div>
                 <div>
-                  <p className="text-gray-600 text-sm">Gorduras</p>
-                  <p className="text-gray-800 font-semibold">{apiMenuData.macros.fat_g.toFixed(1)}g</p>
+                  <p className="text-muted-foreground text-sm">Gorduras</p>
+                  <p className="text-foreground font-semibold">{apiMenuData.macros.fat_g.toFixed(1)}g</p>
                 </div>
               </div>
             </div>
@@ -345,13 +347,13 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
         {/* Recomendações nutricionais */}
         {apiMenuData.nutritional_guidelines_detailed && (
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-3">Recomendações</h3>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <p className="text-gray-700 text-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-3">Recomendações</h3>
+            <div className="bg-muted/40 rounded-lg p-4 space-y-2">
+              <p className="text-foreground/90 text-sm">
                 <span className="font-semibold">Hidratação:</span> {apiMenuData.nutritional_guidelines_detailed.fluids}
               </p>
               {apiMenuData.nutritional_guidelines_detailed.supplements && (
-                <p className="text-gray-700 text-sm">
+                <p className="text-foreground/90 text-sm">
                   <span className="font-semibold">Suplementos:</span> {apiMenuData.nutritional_guidelines_detailed.supplements}
                 </p>
               )}
@@ -363,44 +365,44 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
         {mealsArray.map((meal, mealIndex) => {
           const isExpanded = expandedMealIndices.has(mealIndex);
           return (
-            <div key={mealIndex} className="mb-3 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+            <div key={mealIndex} className="mb-3 border border-border rounded-lg overflow-hidden bg-card">
               <button
                 type="button"
                 onClick={() => toggleMeal(mealIndex)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/40 transition-colors"
                 aria-expanded={isExpanded}
               >
                 <div>
-                  <h3 className="text-base font-bold text-gray-800">{meal.name}</h3>
-                  <p className="text-gray-600 text-sm mt-0.5">Meta: {meal.target_kcal} kcal</p>
+                  <h3 className="text-base font-semibold text-foreground">{meal.name}</h3>
+                  <p className="text-muted-foreground text-sm mt-0.5">Meta: {meal.target_kcal} kcal</p>
                 </div>
                 <ChevronDown
                   size={22}
-                  className={`text-gray-500 flex-shrink-0 ml-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                  className={`text-muted-foreground flex-shrink-0 ml-2 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                 />
               </button>
               {isExpanded && meal.items && meal.items.length > 0 && (
-                <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-3">
-                  <p className="text-gray-600 text-sm mb-3 italic">Escolha uma opção abaixo:</p>
+                <div className="border-t border-border bg-muted/30 px-4 py-3">
+                  <p className="text-muted-foreground text-sm mb-3 italic">Escolha uma opção abaixo:</p>
                   {meal.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="bg-white rounded-lg p-4 mb-3 border border-gray-100">
-                      <h4 className="font-semibold text-gray-800 mb-2">{item.name}</h4>
-                      <p className="text-gray-700 text-sm mb-3 whitespace-pre-line">{item.description}</p>
+                    <div key={itemIndex} className="bg-card rounded-lg p-4 mb-3 border border-border">
+                      <h4 className="font-semibold text-foreground mb-2">{item.name}</h4>
+                      <p className="text-foreground/90 text-sm mb-3 whitespace-pre-line">{item.description}</p>
                       {item.portion && (
-                        <div className="bg-gray-100 rounded-lg p-3 mb-2">
-                          <p className="text-gray-700 font-medium text-sm">{item.portion}</p>
+                        <div className="bg-muted rounded-lg p-3 mb-2">
+                          <p className="text-foreground/90 font-medium text-sm">{item.portion}</p>
                         </div>
                       )}
                       {item.alternatives && item.alternatives.length > 0 && (
                         <div className="mt-2">
-                          <p className="text-gray-600 text-xs font-semibold mb-1">Substituições:</p>
+                          <p className="text-muted-foreground text-xs font-semibold mb-1">Substituições:</p>
                           {item.alternatives.map((alt, altIndex) => (
-                            <p key={altIndex} className="text-gray-600 text-xs ml-2">• {alt}</p>
+                            <p key={altIndex} className="text-muted-foreground text-xs ml-2">• {alt}</p>
                           ))}
                         </div>
                       )}
                       {item.notes && (
-                        <p className="text-gray-500 text-xs mt-2 italic">{item.notes}</p>
+                        <p className="text-muted-foreground text-xs mt-2 italic">{item.notes}</p>
                       )}
                     </div>
                   ))}
@@ -414,30 +416,35 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <button onClick={onBack} className="text-gray-600 hover:text-gray-800 p-1" aria-label="Voltar">
-          <ArrowLeft size={24} />
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+        <button type="button" onClick={onBack} className="text-muted-foreground hover:text-foreground p-1 rounded-md" aria-label="Voltar">
+          <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <h1 className="text-lg font-semibold text-gray-800">Meus Menus</h1>
+        <h1 className="text-sm font-medium text-foreground">Menu</h1>
         {onGoHome ? (
-          <button onClick={onGoHome} className="text-gray-600 hover:text-gray-800 p-1" aria-label="Ir para início">
-            <Home size={24} />
+          <button type="button" onClick={onGoHome} className="text-muted-foreground hover:text-foreground p-1 rounded-md" aria-label="Ir para início">
+            <Home size={22} strokeWidth={2} />
           </button>
         ) : (
-          <div className="w-6" />
+          <div className="w-8" />
         )}
       </div>
 
-      {/* Fixed Header */}
-      <div className="bg-white border-b border-gray-200 p-6">
-        {/* Title and Objective */}
+      <div className="bg-background border-b border-border px-5 py-5 shrink-0 max-w-2xl mx-auto w-full">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Menu Alimentar</h2>
-          <p className="text-gray-600">Objetivo: {objective || defaultMenuData.objective}</p>
+          <p className="app-muted-label mb-1">Plano</p>
+          <h2 className="app-screen-title mb-2">Menu alimentar</h2>
+          <p className="text-muted-foreground text-sm">
+            Objetivo: {objective || defaultMenuData.objective}
+          </p>
+          {onViewRoadmap && (
+            <button type="button" onClick={onViewRoadmap} className="mt-3 text-primary font-medium text-sm hover:underline underline-offset-2">
+              Ver jornada
+            </button>
+          )}
           {apiMenuData?.nutritional_guidelines_detailed?.patient_name && (
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-muted-foreground text-xs mt-2">
               Paciente: {apiMenuData.nutritional_guidelines_detailed.patient_name}
             </p>
           )}
@@ -446,18 +453,16 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
 
       {/* Scrollable Content */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-        <div className="p-6">
+        <div className="p-5 max-w-2xl mx-auto w-full">
           {/* Renderizar dados da API */}
           {hasApiData ? (
             renderApiMealData()
           ) : (
             /* Mensagem de erro se não houver dados da API */
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-              <h3 className="text-lg font-bold text-gray-800 mb-2">
-                Aguardando dados do menu...
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Parece que o menu ainda não foi gerado. Por favor, volte e tente novamente.
+            <div className="rounded-lg border border-border bg-muted/40 p-6 text-center">
+              <h3 className="app-screen-title mb-2">Aguardando dados do menu</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                O menu ainda não está disponível. Volte e tente novamente.
               </p>
             </div>
           )}
@@ -468,30 +473,30 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
               {/* Menu Sections (Dados de exemplo) */}
               {defaultMenuData.sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="mb-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-3">{section.title}</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-3">{section.title}</h3>
               
               {section.instruction && (
-                <p className="text-gray-600 text-sm mb-4">{section.instruction}</p>
+                <p className="text-muted-foreground text-sm mb-4">{section.instruction}</p>
               )}
 
               {/* Simple items (like liquids, supplements) */}
               {section.items && section.items.map((item, itemIndex) => (
-                <div key={itemIndex} className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <p className="text-gray-800">{item.name}</p>
+                <div key={itemIndex} className="bg-muted/40 rounded-lg p-4 mb-3">
+                  <p className="text-foreground">{item.name}</p>
                 </div>
               ))}
 
               {/* Food groups */}
               {section.groups && section.groups.map((group, groupIndex) => (
-                <div key={groupIndex} className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <h4 className="font-semibold text-gray-800 mb-2">{group.name}</h4>
-                  <p className="text-gray-600 text-sm mb-3">{group.description}</p>
+                <div key={groupIndex} className="bg-muted/40 rounded-lg p-4 mb-3">
+                  <h4 className="font-semibold text-foreground mb-2">{group.name}</h4>
+                  <p className="text-muted-foreground text-sm mb-3">{group.description}</p>
                   
-                  <div className="bg-gray-200 rounded-lg p-3 mb-2">
-                    <p className="text-gray-700 font-medium">{group.quantity}</p>
+                  <div className="bg-muted rounded-lg p-3 mb-2">
+                    <p className="text-foreground/90 font-medium">{group.quantity}</p>
                   </div>
                   
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-muted-foreground text-xs">
                     Alternativas: {group.alternatives.join(", ")}
                   </p>
                 </div>
@@ -501,20 +506,20 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
 
               {/* Observations */}
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3">Observações</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3">Observações</h3>
                 {defaultMenuData.observations.map((observation, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4 mb-3">
-                    <p className="text-gray-700 text-sm">{observation}</p>
+                  <div key={index} className="bg-muted/40 rounded-lg p-4 mb-3">
+                    <p className="text-foreground/90 text-sm">{observation}</p>
                   </div>
                 ))}
               </div>
 
               {/* Recommendations */}
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3">Recomendações</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3">Recomendações</h3>
                 {defaultMenuData.recommendations.map((recommendation, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4 mb-3">
-                    <p className="text-gray-700 text-sm">{recommendation}</p>
+                  <div key={index} className="bg-muted/40 rounded-lg p-4 mb-3">
+                    <p className="text-foreground/90 text-sm">{recommendation}</p>
                   </div>
                 ))}
               </div>
@@ -526,12 +531,12 @@ const GeneratedMenuScreen: React.FC<GeneratedMenuScreenProps> = ({
           {/* Nutritionist Info - sempre exibir */}
           {hasApiData && (
           <div className="mb-6">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-5">
-              <p className="text-gray-700 text-sm leading-relaxed text-center">
-                A partir do plano <strong>TP3</strong> é possível fazer um acompanhamento com um profissional de nutrição da <strong>Starbem</strong> para te ajudar a alcançar seus objetivos de forma personalizada e eficaz.*
+            <div className="rounded-lg border border-border bg-primary/5 p-5">
+              <p className="text-foreground/90 text-sm leading-relaxed text-center">
+                A partir do plano <strong className="font-semibold">TP3</strong> é possível fazer um acompanhamento com um profissional de nutrição da <strong className="font-semibold">Starbem</strong> para te ajudar a alcançar seus objetivos de forma personalizada e eficaz.*
               </p>
             </div>
-            <p className="text-gray-400 text-[10px] leading-tight mt-2 text-center px-2">
+            <p className="text-muted-foreground text-[10px] leading-tight mt-2 text-center px-2">
               * Disponibilidade sujeita à contratação pelo RH. O serviço pode não estar disponível para todos os usuários.
             </p>
           </div>

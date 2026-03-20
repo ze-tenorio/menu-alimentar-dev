@@ -1,39 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Lightbulb } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { ArrowLeft, ClipboardList, Lightbulb, Map } from "lucide-react";
 
 interface MenuLoadingScreenProps {
   onComplete: () => void;
   onBack: () => void;
-  type?: 'creating' | 'loading-history';
+  type?: "creating" | "loading-history";
 }
 
-const MenuLoadingScreen: React.FC<MenuLoadingScreenProps> = ({ onComplete, onBack, type = 'creating' }) => {
+const MenuLoadingScreen: React.FC<MenuLoadingScreenProps> = ({ onComplete: _unused, onBack, type = "creating" }) => {
   const [progress, setProgress] = useState(0);
   const [currentTip, setCurrentTip] = useState(0);
 
   const tips = [
-    "Dica: Lembre-se de beber bastante água ao longo do dia!",
-    "Dica: Consuma frutas e verduras em todas as refeições!",
-    "Dica: Evite alimentos processados e prefira os naturais!",
-    "Dica: Faça refeições em horários regulares!",
-    "Dica: Mastigue bem os alimentos para melhor digestão!"
+    "Lembre-se de beber água ao longo do dia.",
+    "Inclua frutas e verduras nas refeições.",
+    "Prefira alimentos minimamente processados.",
+    "Mantenha horários de refeição regulares.",
+    "Mastigue com calma para melhor digestão.",
   ];
 
   useEffect(() => {
-    // Animação de progresso contínua (não chama onComplete automaticamente)
     const interval = setInterval(() => {
-      setProgress(prev => {
-        // Progresso vai até 95% e para (aguardando API)
-        if (prev >= 95) {
-          return 95;
-        }
-        return prev + 1;
-      });
-    }, 300); // Mais lento para dar tempo da API responder
+      setProgress((prev) => (prev >= 95 ? 95 : prev + 1));
+    }, 300);
 
-    // Muda a dica a cada 3 segundos
     const tipInterval = setInterval(() => {
-      setCurrentTip(prev => (prev + 1) % tips.length);
+      setCurrentTip((prev) => (prev + 1) % tips.length);
     }, 3000);
 
     return () => {
@@ -43,64 +35,54 @@ const MenuLoadingScreen: React.FC<MenuLoadingScreenProps> = ({ onComplete, onBac
   }, [tips.length]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <button onClick={onBack} className="text-gray-600 hover:text-gray-800">
-          <ArrowLeft size={24} />
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+        <button type="button" onClick={onBack} className="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors">
+          <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <div className="flex-1"></div>
+        <div className="flex-1" />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-        {/* Icon */}
-        <div className="mb-8">
-          <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-4xl">
-              {type === 'loading-history' ? '📋' : '🏋️‍♂️'}
-            </span>
-          </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 max-w-md mx-auto w-full">
+        <div className="mb-10 w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+          {type === "loading-history" ? (
+            <ClipboardList className="w-8 h-8" strokeWidth={1.75} />
+          ) : (
+            <Map className="w-8 h-8" strokeWidth={1.75} />
+          )}
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-80 max-w-[90vw] mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
-              className="bg-primary h-3 rounded-full transition-all duration-200 ease-out"
+        <div className="w-full max-w-sm mb-6">
+          <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+            <div
+              className="bg-primary h-1.5 rounded-full transition-all duration-200 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="text-center mt-2">
-            <span className="text-primary text-lg font-semibold">{Math.round(progress)}%</span>
-          </div>
+          <p className="text-center mt-2 text-xs font-medium tabular-nums text-muted-foreground">{Math.round(progress)}%</p>
         </div>
 
-        {/* Loading Text */}
         <div className="text-center mb-8">
-          {type === 'loading-history' ? (
+          {type === "loading-history" ? (
             <>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Carregando seus menus...</h2>
-              <p className="text-gray-600">Buscando seu histórico de planos alimentares</p>
+              <h2 className="app-screen-title mb-2">Carregando seus menus</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">Buscando seu histórico de planos alimentares.</p>
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Criando seu menu...</h2>
-              <p className="text-gray-600">Analisando suas respostas e personalizando seu plano alimentar</p>
-              <p className="text-gray-500 text-sm mt-2">Isso pode levar de 20 a 30 segundos...</p>
+              <h2 className="app-screen-title mb-2">Gerando sua jornada</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed px-1">
+                Estamos gerando sua jornada personalizada com base nos seus dados e objetivos.
+              </p>
+              <p className="text-muted-foreground/80 text-xs mt-3">Isso pode levar de 20 a 30 segundos.</p>
             </>
           )}
         </div>
 
-        {/* Tips */}
-        <div className="w-full max-w-md">
-          <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <Lightbulb className="w-5 h-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" />
-              <p className="text-gray-700 text-sm">
-                {tips[currentTip]}
-              </p>
-            </div>
+        <div className="w-full max-w-sm app-card p-4">
+          <div className="flex items-start gap-3">
+            <Lightbulb className="w-5 h-5 text-primary mt-0.5 shrink-0" strokeWidth={2} />
+            <p className="text-foreground/90 text-sm leading-relaxed">{tips[currentTip]}</p>
           </div>
         </div>
       </div>

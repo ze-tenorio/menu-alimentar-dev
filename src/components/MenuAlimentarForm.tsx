@@ -1,5 +1,22 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Plus, Minus, Target, Heart, Activity, Zap, Utensils, FileText, Lightbulb, AlertCircle, Mail, Phone } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  Minus,
+  Target,
+  Heart,
+  Activity,
+  Zap,
+  Utensils,
+  FileText,
+  Lightbulb,
+  AlertCircle,
+  Mail,
+  Phone,
+  TrendingDown,
+  Scale,
+  Dumbbell,
+} from 'lucide-react';
 
 interface MenuAlimentarFormProps {
   onClose: () => void;
@@ -61,8 +78,9 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     hasPathologies: false,
     pathologies: '',
     
-    // Step 5: Objetivo
+    // Step 5: Objetivo (objectiveFromSuggest: "Sugira para mim" envia ganho_massa na API)
     objective: '',
+    objectiveFromSuggest: false,
     
     // Step 6: Frequência de atividade física
     activityFrequency: '',
@@ -116,22 +134,22 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
         );
       case 4: // Patologias - sempre válido (tem valor default)
         return true;
-      case 5: // Objetivo
-        return formData.objective !== '';
-      case 6: // Frequência de atividade
+      case 5: // Frequência de atividade
         return formData.activityFrequency !== '';
-      case 7: // Intensidade do exercício
+      case 6: // Intensidade do exercício
         return formData.exerciseIntensity !== '';
-      case 8: // Tipo de dieta
+      case 7: // Tipo de dieta
         return formData.dietType !== '';
-      case 9: // Alergias - sempre válido (opcional)
+      case 8: // Alergias - sempre válido (opcional)
         return true;
-      case 10: // Intolerâncias - sempre válido (opcional)
+      case 9: // Intolerâncias - sempre válido (opcional)
         return true;
-      case 11: // Aversões - sempre válido (opcional)
+      case 10: // Aversões - sempre válido (opcional)
         return true;
-      case 12: // Preferências - sempre válido (opcional)
+      case 11: // Preferências - sempre válido (opcional)
         return true;
+      case 12: // Objetivo
+        return formData.objective !== '';
       default:
         return true;
     }
@@ -178,13 +196,13 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
         }
         return messages.length > 0 ? `Por favor, informe: ${messages.join(', ')}.` : '';
       case 5:
-        return 'Por favor, selecione seu objetivo.';
-      case 6:
         return 'Por favor, selecione sua frequência de atividade física.';
-      case 7:
+      case 6:
         return 'Por favor, selecione a intensidade do exercício.';
-      case 8:
+      case 7:
         return 'Por favor, selecione o tipo de dieta que você segue.';
+      case 12:
+        return 'Por favor, selecione seu objetivo.';
       default:
         return '';
     }
@@ -361,17 +379,17 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
             <FileText className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Identificação</h2>
-          <p className="text-gray-600 text-base leading-relaxed">
+          <h2 className="app-screen-title mb-2">Identificação</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed leading-relaxed">
             Para começar, informe seu CPF
           </p>
         </div>
         
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
+          <label className="block text-foreground font-medium mb-2">
             CPF <span className="text-red-500">*</span>
           </label>
           <input
@@ -394,10 +412,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
               handleInputChange('cpf', formatted);
             }}
             maxLength={14}
-            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-foreground ${
               showError 
                 ? 'border-red-400 focus:ring-red-200' 
-                : 'border-gray-200 focus:ring-primary/20'
+                : 'border-border focus:ring-primary/20'
             }`}
           />
           {showError && (
@@ -432,17 +450,17 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
             <Heart className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados Pessoais</h2>
-          <p className="text-gray-600 text-base">Informe seus dados de identificação</p>
+          <h2 className="app-screen-title mb-2">Dados Pessoais</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">Informe seus dados de identificação</p>
         </div>
         
         <div className="space-y-4">
           {/* Nome Completo */}
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-foreground font-medium mb-2">
               Nome Completo <span className="text-red-500">*</span>
             </label>
             <input
@@ -450,10 +468,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
               placeholder="Digite seu nome completo"
               value={formData.fullName}
               onChange={(e) => handleInputChange('fullName', e.target.value)}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-foreground ${
                 showNameError 
                   ? 'border-red-400 focus:ring-red-200' 
-                  : 'border-gray-200 focus:ring-primary/20'
+                  : 'border-border focus:ring-primary/20'
               }`}
             />
             {showNameError && (
@@ -463,8 +481,8 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
 
           {/* E-mail */}
           <div>
-            <label className="flex items-center text-gray-700 font-medium mb-2">
-              <Mail className="w-4 h-4 mr-2 text-gray-500" />
+            <label className="flex items-center text-foreground font-medium mb-2">
+              <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
               E-mail <span className="text-red-500 ml-1">*</span>
             </label>
             <input
@@ -472,10 +490,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
               placeholder="seu.email@exemplo.com"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-foreground ${
                 showEmailError 
                   ? 'border-red-400 focus:ring-red-200' 
-                  : 'border-gray-200 focus:ring-primary/20'
+                  : 'border-border focus:ring-primary/20'
               }`}
             />
             {showEmailError && (
@@ -485,8 +503,8 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
 
           {/* Telefone */}
           <div>
-            <label className="flex items-center text-gray-700 font-medium mb-2">
-              <Phone className="w-4 h-4 mr-2 text-gray-500" />
+            <label className="flex items-center text-foreground font-medium mb-2">
+              <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
               Telefone <span className="text-red-500 ml-1">*</span>
             </label>
             <input
@@ -498,10 +516,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
                 handleInputChange('phone', formatted);
               }}
               maxLength={15}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-gray-800 ${
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 text-foreground ${
                 showPhoneError 
                   ? 'border-red-400 focus:ring-red-200' 
-                  : 'border-gray-200 focus:ring-primary/20'
+                  : 'border-border focus:ring-primary/20'
               }`}
             />
             {showPhoneError && (
@@ -511,26 +529,26 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           
           {/* Sexo Biológico */}
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-foreground font-medium mb-2">
               Sexo Biológico <span className="text-red-500">*</span>
             </label>
             <div className={`grid grid-cols-2 gap-3 ${showGenderError ? 'p-1 border border-red-400 rounded-lg' : ''}`}>
               <button
                 onClick={() => handleInputChange('gender', 'M')}
-                className={`p-4 rounded-lg border-2 transition-colors ${
+                className={`p-4 rounded-lg border transition-colors ${
                   formData.gender === 'M'
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'bg-gray-50 border-gray-200 text-gray-700'
+                    ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+                    : 'bg-card border-border hover:bg-muted/40 text-foreground'
                 }`}
               >
                 <span className="font-medium">Masculino</span>
               </button>
               <button
                 onClick={() => handleInputChange('gender', 'F')}
-                className={`p-4 rounded-lg border-2 transition-colors ${
+                className={`p-4 rounded-lg border transition-colors ${
                   formData.gender === 'F'
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'bg-gray-50 border-gray-200 text-gray-700'
+                    ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+                    : 'bg-card border-border hover:bg-muted/40 text-foreground'
                 }`}
               >
                 <span className="font-medium">Feminino</span>
@@ -561,21 +579,21 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
             <Heart className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Dados de Saúde</h2>
-          <p className="text-gray-600 text-base">Qual é a sua idade, peso e altura?</p>
+          <h2 className="app-screen-title mb-2">Dados de Saúde</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">Qual é a sua idade, peso e altura?</p>
         </div>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-foreground font-medium mb-2">
               Idade (em anos) <span className="text-red-500">*</span>
-              <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números (ex: 25)</span>
+              <span className="block text-sm text-muted-foreground font-normal mt-1">Digite apenas números (ex: 25)</span>
             </label>
             <div className={`flex items-center bg-white border rounded-lg ${
-              showAgeError ? 'border-red-400' : 'border-gray-200'
+              showAgeError ? 'border-red-400' : 'border-border'
             }`}>
               <input
                 type="text"
@@ -588,7 +606,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
                   const value = e.target.value.replace(/[^0-9]/g, '');
                   handleInputChange('age', value);
                 }}
-                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-foreground"
               />
               <div className="flex flex-col">
                 <button 
@@ -613,12 +631,12 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           </div>
           
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-foreground font-medium mb-2">
               Peso atual (em kg) <span className="text-red-500">*</span>
-              <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números (ex: 70 ou 65.5)</span>
+              <span className="block text-sm text-muted-foreground font-normal mt-1">Digite apenas números (ex: 70 ou 65.5)</span>
             </label>
             <div className={`flex items-center bg-white border rounded-lg ${
-              showWeightError ? 'border-red-400' : 'border-gray-200'
+              showWeightError ? 'border-red-400' : 'border-border'
             }`}>
               <input
                 type="text"
@@ -634,7 +652,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
                   const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : value;
                   handleInputChange('weight', sanitized);
                 }}
-                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-foreground"
               />
               <div className="flex flex-col">
                 <button 
@@ -659,12 +677,12 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           </div>
           
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-foreground font-medium mb-2">
               Altura (em centímetros) <span className="text-red-500">*</span>
-              <span className="block text-sm text-gray-500 font-normal mt-1">Digite apenas números em cm (ex: 170)</span>
+              <span className="block text-sm text-muted-foreground font-normal mt-1">Digite apenas números em cm (ex: 170)</span>
             </label>
             <div className={`flex items-center bg-white border rounded-lg ${
-              showHeightError ? 'border-red-400' : 'border-gray-200'
+              showHeightError ? 'border-red-400' : 'border-border'
             }`}>
               <input
                 type="text"
@@ -677,7 +695,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
                   const value = e.target.value.replace(/[^0-9]/g, '');
                   handleInputChange('height', value);
                 }}
-                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-gray-800"
+                className="flex-1 p-3 border-0 rounded-l-lg focus:outline-none text-foreground"
               />
               <div className="flex flex-col">
                 <button 
@@ -708,11 +726,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   const renderStep4 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
           <Heart className="w-6 h-6 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Sobre sua Saúde</h2>
-        <p className="text-gray-600 text-base leading-relaxed">
+        <h2 className="app-screen-title mb-2">Sobre sua Saúde</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed leading-relaxed">
           Você possui alguma doença ou condição de saúde?
         </p>
       </div>
@@ -721,20 +739,20 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
         <div className="space-y-3">
           <button
             onClick={() => handleInputChange('hasPathologies', false)}
-            className={`w-full p-4 rounded-lg border-2 transition-colors ${
+            className={`w-full p-4 rounded-lg border transition-colors ${
               formData.hasPathologies === false
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'bg-gray-50 border-gray-200 text-gray-700'
+                ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+                : 'bg-card border-border hover:bg-muted/40 text-foreground'
             }`}
           >
             <span className="font-medium">Não</span>
           </button>
           <button
             onClick={() => handleInputChange('hasPathologies', true)}
-            className={`w-full p-4 rounded-lg border-2 transition-colors ${
+            className={`w-full p-4 rounded-lg border transition-colors ${
               formData.hasPathologies === true
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'bg-gray-50 border-gray-200 text-gray-700'
+                ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+                : 'bg-card border-border hover:bg-muted/40 text-foreground'
             }`}
           >
             <span className="font-medium">Sim</span>
@@ -743,12 +761,12 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
 
         {formData.hasPathologies && (
           <div>
-            <label className="block text-gray-700 font-medium mb-2">Quais doenças?</label>
+            <label className="block text-foreground font-medium mb-2">Quais doenças?</label>
             <textarea
               placeholder="Liste as doenças ou condições de saúde, separadas por vírgula"
               value={formData.pathologies}
               onChange={(e) => handleInputChange('pathologies', e.target.value)}
-              className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              className="w-full p-4 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               rows={3}
             />
           </div>
@@ -758,48 +776,47 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   );
 
   const renderStep5 = () => {
-    const isValid = formData.objective !== '';
+    const isValid = formData.activityFrequency !== '';
     const showError = showValidationError && !isValid;
     
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Target className="w-6 h-6 text-primary" />
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
+            <Activity className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Objetivo</h2>
-          <p className="text-gray-600 text-base">
-            Qual é o seu objetivo? <span className="text-red-500">*</span>
+          <h2 className="app-screen-title mb-2">Frequência de atividade física</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Quantas vezes por semana você pratica atividade física? <span className="text-red-500">*</span>
           </p>
         </div>
         
         <div className={`space-y-3 ${showError ? 'p-2 border border-red-400 rounded-lg' : ''}`}>
           {[
-            { id: 'emagrecimento', title: '🔻 Emagrecimento', description: 'Perder peso de forma saudável', icon: '🔻' },
-            { id: 'manutencao', title: '⚖️ Manutenção', description: 'Manter peso com saúde', icon: '⚖️' },
-            { id: 'ganho_massa', title: '🔺 Ganho de Massa', description: 'Aumentar a massa muscular', icon: '🔺' }
+            { id: 'sedentario', title: 'Sedentário', description: 'Não pratico atividade física' },
+            { id: 'leve', title: '1-2 vezes', description: 'Por semana' },
+            { id: 'moderado', title: '3-4 vezes', description: 'Por semana' },
+            { id: 'ativo', title: '5-6 vezes', description: 'Por semana' },
+            { id: 'muito_ativo', title: 'Todos os dias', description: 'Treino diário' }
           ].map((option) => (
             <button
               key={option.id}
-              onClick={() => handleInputChange('objective', option.id)}
-              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
-                formData.objective === option.id
-                  ? 'bg-primary/10 border-primary'
-                  : 'bg-gray-50 border-gray-200'
+              onClick={() => handleInputChange('activityFrequency', option.id)}
+              className={`w-full p-4 rounded-lg border transition-colors text-left ${
+                formData.activityFrequency === option.id
+                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                  : 'bg-card border-border hover:bg-muted/40'
               }`}
             >
-              <div className="flex items-center">
-                <span className="text-2xl mr-3">{option.icon}</span>
-                <div>
-                  <div className="font-medium text-gray-800">{option.title}</div>
-                  <div className="text-sm text-gray-600">{option.description}</div>
-                </div>
+              <div>
+                <div className="font-medium text-foreground">{option.title}</div>
+                <div className="text-sm text-muted-foreground">{option.description}</div>
               </div>
             </button>
           ))}
         </div>
         {showError && (
-          <p className="text-red-500 text-sm">Por favor, selecione um objetivo</p>
+          <p className="text-red-500 text-sm">Por favor, selecione sua frequência de atividade física</p>
         )}
       </div>
     );
@@ -812,11 +829,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
             <Activity className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Frequência de atividade física</h2>
-          <p className="text-gray-600 text-base">
+          <h2 className="app-screen-title mb-2">Frequência de atividade física</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Quantas vezes por semana você pratica atividade física? <span className="text-red-500">*</span>
           </p>
         </div>
@@ -832,15 +849,15 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             <button
               key={option.id}
               onClick={() => handleInputChange('activityFrequency', option.id)}
-              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+              className={`w-full p-4 rounded-lg border transition-colors text-left ${
                 formData.activityFrequency === option.id
-                  ? 'bg-primary/10 border-primary'
-                  : 'bg-gray-50 border-gray-200'
+                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                  : 'bg-card border-border hover:bg-muted/40'
               }`}
             >
               <div>
-                <div className="font-medium text-gray-800">{option.title}</div>
-                <div className="text-sm text-gray-600">{option.description}</div>
+                <div className="font-medium text-foreground">{option.title}</div>
+                <div className="text-sm text-muted-foreground">{option.description}</div>
               </div>
             </button>
           ))}
@@ -859,11 +876,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
             <Zap className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Nível de Intensidade</h2>
-          <p className="text-gray-600 text-base">
+          <h2 className="app-screen-title mb-2">Nível de Intensidade</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Qual a intensidade do exercício que você executa? <span className="text-red-500">*</span>
           </p>
         </div>
@@ -894,16 +911,16 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             <button
               key={option.id}
               onClick={() => handleInputChange('exerciseIntensity', option.id)}
-              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+              className={`w-full p-4 rounded-lg border transition-colors text-left ${
                 formData.exerciseIntensity === option.id
-                  ? 'bg-primary/10 border-primary'
-                  : 'bg-gray-50 border-gray-200'
+                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                  : 'bg-card border-border hover:bg-muted/40'
               }`}
             >
               <div>
-                <div className="font-medium text-gray-800">{option.title}</div>
+                <div className="font-medium text-foreground">{option.title}</div>
                 {option.description && (
-                  <div className="text-sm text-gray-600 mt-1">{option.description}</div>
+                  <div className="text-sm text-muted-foreground mt-1">{option.description}</div>
                 )}
               </div>
             </button>
@@ -923,11 +940,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
             <FileText className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Tipo de Dieta</h2>
-          <p className="text-gray-600 text-base">
+          <h2 className="app-screen-title mb-2">Tipo de Dieta</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
             Qual tipo de dieta você segue? <span className="text-red-500">*</span>
           </p>
         </div>
@@ -944,15 +961,15 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             <button
               key={diet.id}
               onClick={() => handleInputChange('dietType', diet.id)}
-              className={`w-full p-4 rounded-lg border-2 transition-colors text-left ${
+              className={`w-full p-4 rounded-lg border transition-colors text-left ${
                 formData.dietType === diet.id
-                  ? 'bg-primary/10 border-primary'
-                  : 'bg-gray-50 border-gray-200'
+                  ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                  : 'bg-card border-border hover:bg-muted/40'
               }`}
             >
               <div>
-                <div className="font-medium text-gray-800">{diet.title}</div>
-                <div className="text-sm text-gray-600">{diet.description}</div>
+                <div className="font-medium text-foreground">{diet.title}</div>
+                <div className="text-sm text-muted-foreground">{diet.description}</div>
               </div>
             </button>
           ))}
@@ -967,11 +984,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   const renderStep9 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
           <Utensils className="w-6 h-6 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Alergias Alimentares</h2>
-        <p className="text-gray-600 text-base">Você tem alergia a algum alimento? Selecione todos que se aplicam</p>
+        <h2 className="app-screen-title mb-2">Alergias Alimentares</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">Você tem alergia a algum alimento? Selecione todos que se aplicam</p>
       </div>
       
       <div className="grid grid-cols-2 gap-3">
@@ -990,10 +1007,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             key={allergy}
             type="button"
             onClick={() => handleAllergyToggle(allergy)}
-            className={`p-3 rounded-lg border-2 transition-colors text-sm ${
+            className={`p-3 rounded-lg border transition-colors text-sm ${
               formData.allergies.includes(allergy)
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'bg-gray-50 border-gray-200 text-gray-700'
+                ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+                : 'bg-card border-border hover:bg-muted/40 text-foreground'
             }`}
           >
             {allergy}
@@ -1004,12 +1021,12 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
       {/* Caixa de texto para "Outros" */}
       {formData.allergies.includes('Outros') && (
         <div>
-          <label className="block text-gray-700 font-medium mb-2">Especifique as outras alergias:</label>
+          <label className="block text-foreground font-medium mb-2">Especifique as outras alergias:</label>
           <textarea
             placeholder="Liste as alergias, separadas por vírgula (ex: glúten, corantes, conservantes)"
             value={formData.allergiesOther}
             onChange={(e) => handleInputChange('allergiesOther', e.target.value)}
-            className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+            className="w-full p-4 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
             rows={3}
           />
         </div>
@@ -1021,10 +1038,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           handleInputChange('allergies', []);
           handleInputChange('allergiesOther', '');
         }}
-        className={`w-full p-3 rounded-lg border-2 transition-colors text-sm ${
+        className={`w-full p-3 rounded-lg border transition-colors text-sm ${
           formData.allergies.length === 0
-            ? 'bg-primary/10 border-primary text-primary'
-            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+            ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+            : 'bg-card border-border hover:bg-muted/40 text-foreground'
         }`}
       >
         Não tenho alergias
@@ -1035,11 +1052,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   const renderStep10 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
           <Utensils className="w-6 h-6 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Intolerâncias Alimentares</h2>
-        <p className="text-gray-600 text-base">Você tem intolerância a algum alimento? Selecione todos que se aplicam</p>
+        <h2 className="app-screen-title mb-2">Intolerâncias Alimentares</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">Você tem intolerância a algum alimento? Selecione todos que se aplicam</p>
       </div>
       
       <div className="grid grid-cols-2 gap-3">
@@ -1053,10 +1070,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
             key={intolerance}
             type="button"
             onClick={() => handleIntoleranceToggle(intolerance)}
-            className={`p-3 rounded-lg border-2 transition-colors text-sm ${
+            className={`p-3 rounded-lg border transition-colors text-sm ${
               formData.intolerances.includes(intolerance)
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'bg-gray-50 border-gray-200 text-gray-700'
+                ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+                : 'bg-card border-border hover:bg-muted/40 text-foreground'
             }`}
           >
             {intolerance}
@@ -1067,12 +1084,12 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
       {/* Caixa de texto para "Outros" */}
       {formData.intolerances.includes('Outros') && (
         <div>
-          <label className="block text-gray-700 font-medium mb-2">Especifique as outras intolerâncias:</label>
+          <label className="block text-foreground font-medium mb-2">Especifique as outras intolerâncias:</label>
           <textarea
             placeholder="Liste as intolerâncias, separadas por vírgula (ex: sorbitol, sacarose, histamina)"
             value={formData.intolerancesOther}
             onChange={(e) => handleInputChange('intolerancesOther', e.target.value)}
-            className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+            className="w-full p-4 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
             rows={3}
           />
         </div>
@@ -1084,10 +1101,10 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           handleInputChange('intolerances', []);
           handleInputChange('intolerancesOther', '');
         }}
-        className={`w-full p-3 rounded-lg border-2 transition-colors text-sm ${
+        className={`w-full p-3 rounded-lg border transition-colors text-sm ${
           formData.intolerances.length === 0
-            ? 'bg-primary/10 border-primary text-primary'
-            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+            ? 'bg-primary/5 border-primary ring-1 ring-primary text-primary'
+            : 'bg-card border-border hover:bg-muted/40 text-foreground'
         }`}
       >
         Não tenho intolerâncias
@@ -1095,14 +1112,14 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
     </div>
   );
 
-  const renderStep11 = () => (
+  const renderStepAversions = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
           <Utensils className="w-6 h-6 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Aversões Alimentares</h2>
-        <p className="text-gray-600 text-base">Tem algum alimento que você não goste ou prefira evitar?</p>
+        <h2 className="app-screen-title mb-2">Aversões Alimentares</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">Tem algum alimento que você não goste ou prefira evitar?</p>
       </div>
       
       <div>
@@ -1110,7 +1127,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           placeholder="Liste os alimentos que você não gosta, separados por vírgula (ex: brócolis, berinjela, cebola)"
           value={formData.aversions}
           onChange={(e) => handleInputChange('aversions', e.target.value)}
-          className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+          className="w-full p-4 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
           rows={4}
         />
       </div>
@@ -1120,11 +1137,97 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   const renderStep12 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
+          <Target className="w-6 h-6 text-primary" />
+        </div>
+        <h2 className="app-screen-title mb-2">Objetivo</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Qual é o seu objetivo? <span className="text-red-500">*</span>
+        </p>
+      </div>
+
+      <div className={`space-y-3 ${showValidationError && !validateCurrentStep ? 'p-2 border border-red-400 rounded-lg' : ''}`}>
+        {(
+          [
+            {
+              id: 'emagrecimento' as const,
+              title: 'Emagrecimento',
+              description: 'Perder peso de forma saudável',
+              Icon: TrendingDown,
+            },
+            {
+              id: 'manutencao' as const,
+              title: 'Manutenção',
+              description: 'Manter peso com saúde',
+              Icon: Scale,
+            },
+            {
+              id: 'ganho_massa' as const,
+              title: 'Ganho de massa',
+              description: 'Aumentar a massa muscular',
+              Icon: Dumbbell,
+            },
+          ] as const
+        ).map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => {
+              handleInputChange('objective', option.id);
+              handleInputChange('objectiveFromSuggest', false);
+            }}
+            className={`w-full p-4 rounded-lg border transition-colors text-left ${
+              formData.objective === option.id &&
+              (option.id !== 'ganho_massa' || !formData.objectiveFromSuggest)
+                ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                : 'bg-card border-border hover:bg-muted/40'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 text-primary">
+                <option.Icon className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div>
+                <div className="font-medium text-foreground">{option.title}</div>
+                <div className="text-sm text-muted-foreground">{option.description}</div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          handleInputChange('objective', 'ganho_massa');
+          handleInputChange('objectiveFromSuggest', true);
+        }}
+        className={`w-full p-4 rounded-lg border border-dashed text-left transition-colors ${
+          formData.objective === 'ganho_massa' && formData.objectiveFromSuggest
+            ? 'bg-primary/5 border-primary ring-1 ring-primary text-foreground'
+            : 'border-border bg-card text-foreground hover:bg-muted/40'
+        }`}
+      >
+        <span className="block font-medium">Sugira para mim</span>
+        <span className="block text-sm mt-1 text-muted-foreground">
+          Usamos seus dados do questionário para orientar o plano automaticamente.
+        </span>
+      </button>
+
+      {showValidationError && !validateCurrentStep && (
+        <p className="text-red-500 text-sm">Por favor, selecione um objetivo</p>
+      )}
+    </div>
+  );
+
+  const renderStep11 = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3 text-primary">
           <Lightbulb className="w-6 h-6 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Preferências Alimentares</h2>
-        <p className="text-gray-600 text-base">Quais alimentos você gosta e gostaria de incluir nas suas refeições?</p>
+        <h2 className="app-screen-title mb-2">Preferências Alimentares</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">Quais alimentos você gosta e gostaria de incluir nas suas refeições?</p>
       </div>
       
       <div>
@@ -1132,7 +1235,7 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
           placeholder="Liste seus alimentos favoritos ou preferidos, separados por vírgula (ex: frango, arroz integral, batata doce)"
           value={formData.preferences}
           onChange={(e) => handleInputChange('preferences', e.target.value)}
-          className="w-full p-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+          className="w-full p-4 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
           rows={4}
         />
       </div>
@@ -1146,11 +1249,11 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
       case 3: return renderStep3();
       case 4: return renderStep4();
       case 5: return renderStep5();
-      case 6: return renderStep6();
-      case 7: return renderStep7();
-      case 8: return renderStep8();
-      case 9: return renderStep9();
-      case 10: return renderStep10();
+      case 6: return renderStep7();
+      case 7: return renderStep8();
+      case 8: return renderStep9();
+      case 9: return renderStep10();
+      case 10: return renderStepAversions();
       case 11: return renderStep11();
       case 12: return renderStep12();
       default: return renderStep1();
@@ -1158,22 +1261,22 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <button onClick={handleBack} className="text-gray-600 hover:text-gray-800">
-          <ArrowLeft size={24} />
+      <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+        <button type="button" onClick={handleBack} className="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors">
+          <ArrowLeft size={22} strokeWidth={2} />
         </button>
-        <div className="flex-1 mx-4">
+        <div className="flex-1 mx-4 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Passo {currentStep} de {totalSteps}
             </span>
-            <span className="text-sm font-medium text-gray-600">{Math.round(progress)}%</span>
+            <span className="text-xs font-medium tabular-nums text-muted-foreground">{Math.round(progress)}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
+          <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+            <div
+              className="bg-primary h-1.5 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -1181,12 +1284,12 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 max-w-lg mx-auto w-full">
         {renderCurrentStep()}
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-gray-200">
+      <div className="p-6 border-t border-border bg-background shrink-0">
         {/* Mensagem de erro de validação */}
         {showValidationError && !validateCurrentStep && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
@@ -1196,14 +1299,15 @@ const MenuAlimentarForm: React.FC<MenuAlimentarFormProps> = ({ onClose, onComple
         )}
         
         <button
+          type="button"
           onClick={handleNext}
-          className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
+          className={`w-full py-3.5 rounded-lg font-medium text-base transition-colors ${
             validateCurrentStep
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-primary text-primary-foreground hover:opacity-95'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
         >
-          {currentStep === totalSteps ? 'Gerar Menu' : 'Continuar'}
+          {currentStep === totalSteps ? 'Concluir' : 'Continuar'}
         </button>
       </div>
     </div>
