@@ -1,5 +1,3 @@
-import * as amplitude from "@amplitude/analytics-browser";
-
 export interface BannerConfig {
   id: string;
   image: string;
@@ -20,16 +18,6 @@ export const bannerConfig: BannerConfig = {
   active: true,
 };
 
-export const trackBannerView = (bannerId: string) => {
-  amplitude.track("Welcome Banner Viewed", {
-    banner_id: bannerId,
-    screen: "WelcomeBannerScreen",
-  });
-};
+export const trackBannerView = (_bannerId: string) => {};
 
-export const trackBannerClick = (bannerId: string) => {
-  amplitude.track("Welcome Banner Clicked", {
-    banner_id: bannerId,
-    screen: "WelcomeBannerScreen",
-  });
-};
+export const trackBannerClick = (_bannerId: string) => {};
