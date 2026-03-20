@@ -114,7 +114,7 @@ export interface MenuApiResponse {
 /**
  * URL da API - Produção
  */
-const API_URL = 'https://kpg71puaqk.execute-api.us-east-2.amazonaws.com/prd/meal-plan-agent';
+const API_URL = 'https://e2kqx2zwtc.execute-api.us-east-2.amazonaws.com/dev/meal-plan-agent';
 
 /**
  * API Key para autenticação

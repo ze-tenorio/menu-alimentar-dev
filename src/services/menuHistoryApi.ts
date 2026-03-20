@@ -9,7 +9,7 @@ import { MenuPlan } from './menuApi';
 /**
  * URLs da API - Produção
  */
-const API_BASE_URL = 'https://kpg71puaqk.execute-api.us-east-2.amazonaws.com/prd';
+const API_BASE_URL = 'https://e2kqx2zwtc.execute-api.us-east-2.amazonaws.com/dev';
 const API_LIST_PLANS = `${API_BASE_URL}/list-plans`;
 const API_GET_PLAN = `${API_BASE_URL}/get-plan`;
 

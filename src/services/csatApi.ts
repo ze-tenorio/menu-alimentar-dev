@@ -21,7 +21,7 @@ export interface CsatApiResponse {
 /**
  * URL da API para CSAT - Produção
  */
-const CSAT_API_URL = 'https://kpg71puaqk.execute-api.us-east-2.amazonaws.com/prd/plan-csat';
+const CSAT_API_URL = 'https://e2kqx2zwtc.execute-api.us-east-2.amazonaws.com/dev/plan-csat';
 
 /**
  * API Key para autenticação
